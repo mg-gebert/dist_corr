@@ -78,10 +78,10 @@ fn quadratic_relation() {
     let mut dist_corr = 0.0;
 
     let tick = Instant::now();
-    for _i in 0..100 {
+    for _i in 0..1 {
         dist_corr = dist_corr_fast(&v_1, &v_2);
     }
-    println!("Time {}s", tick.elapsed().as_secs_f32() / 100.0);
+    println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
     println!("Dist corr: {:?}", dist_corr);
 
     let tick = Instant::now();
