@@ -1,5 +1,7 @@
 use itertools::izip;
-use rayon::join;
+use rayon::iter::IndexedParallelIterator;
+use rayon::iter::ParallelIterator;
+use rayon::prelude::ParallelSliceMut;
 
 #[derive(Clone, Default)]
 struct Iv {
@@ -17,103 +19,64 @@ struct Csum {
 }
 
 pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: usize) -> f64 {
-    // initialize buffered indices
+    // initialize indices
     let mut idxs_before: Vec<usize> = (0..len).collect();
     let mut idxs_after: Vec<usize> = vec![0; len];
 
-    let middle = (len as f64 / 2.0).ceil() as usize;
+    let num_threads = rayon::current_num_threads();
+    //println!("Number of available threads in Rayon: {}", num_threads);
+
+    let middle = (len as f64 / num_threads as f64).ceil() as usize;
+    let middle_2 = middle * num_threads / 2;
 
     let mut ivs = vec![Iv::default(); len];
-    let mut csums = vec![Csum::default(); len + 1];
-    let mut csums_left = vec![Csum::default(); middle + 1];
-    let mut csums_right = vec![Csum::default(); len - middle + 1];
+    let mut csums = vec![Csum::default(); len + num_threads];
 
-    let mut idxs_before_left = idxs_before[..middle].to_vec();
-    let mut idxs_after_left = idxs_after[..middle].to_vec();
+    idxs_before
+        .par_chunks_mut(middle)
+        .zip(idxs_after.par_chunks_mut(middle))
+        .zip(ivs.par_chunks_mut(middle))
+        .zip(csums.par_chunks_mut(middle + 1))
+        .for_each(
+            |(((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk)| {
+                let first_index = idxs_before_chunk[0];
 
-    let mut idxs_before_right = idxs_before[middle..].to_vec();
-    let mut idxs_after_right = idxs_after[middle..].to_vec();
-
-    let mut ivs_left = ivs.clone();
-    let mut ivs_right = ivs.clone();
-
-    let ((), ()) = join(
-        || {
-            perform_loop(
-                samples0,
-                samples1,
-                &mut idxs_before_left,
-                &mut idxs_after_left,
-                middle,
-                &mut 1,
-                &mut csums_left,
-                &mut ivs_left,
-            );
-        },
-        || {
-            perform_loop(
-                samples0,
-                samples1,
-                &mut idxs_before_right,
-                &mut idxs_after_right,
-                len - middle,
-                &mut 1,
-                &mut csums_right,
-                &mut ivs_right,
-            );
-        },
-    );
-
-    /*
-        perform_loop(
-            samples0,
-            samples1,
-            &mut idxs_before_left,
-            &mut idxs_after_left,
-            middle,
-            &mut 1,
-            &mut csums_left,
-            &mut ivs,
+                perform_loop(
+                    samples0,
+                    samples1,
+                    idxs_before_chunk,
+                    idxs_after_chunk,
+                    ivs_chunk.len(),
+                    &mut 1,
+                    first_index,
+                    csums_chunk,
+                    ivs_chunk,
+                );
+            },
         );
 
-        perform_loop(
-            samples0,
-            samples1,
-            &mut idxs_before_right,
-            &mut idxs_after_right,
-            len - middle,
-            &mut 1,
-            &mut csums_right,
-            &mut ivs,
+    idxs_before
+        .par_chunks_mut(middle_2)
+        .zip(idxs_after.par_chunks_mut(middle_2))
+        .zip(ivs.par_chunks_mut(middle_2))
+        .zip(csums.par_chunks_mut(middle_2 + 1))
+        .for_each(
+            |(((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk)| {
+                let first_index = idxs_before_chunk[0];
+
+                perform_loop(
+                    samples0,
+                    samples1,
+                    idxs_before_chunk,
+                    idxs_after_chunk,
+                    ivs_chunk.len(),
+                    &mut middle.clone(),
+                    first_index,
+                    csums_chunk,
+                    ivs_chunk,
+                );
+            },
         );
-    */
-
-    idxs_after[..middle]
-        .iter_mut()
-        .zip(idxs_after_left)
-        .for_each(|(x, y)| *x = y);
-    idxs_after[middle..]
-        .iter_mut()
-        .zip(idxs_after_right)
-        .for_each(|(x, y)| *x = y);
-
-    idxs_before[..middle]
-        .iter_mut()
-        .zip(idxs_before_left)
-        .for_each(|(x, y)| *x = y);
-    idxs_before[middle..]
-        .iter_mut()
-        .zip(idxs_before_right)
-        .for_each(|(x, y)| *x = y);
-
-    ivs[..middle]
-        .iter_mut()
-        .zip(ivs_left[..middle].iter())
-        .for_each(|(x, y)| *x = y.clone());
-    ivs[middle..]
-        .iter_mut()
-        .zip(ivs_right[middle..].iter())
-        .for_each(|(x, y)| *x = y.clone());
 
     perform_loop(
         samples0,
@@ -121,8 +84,9 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
         &mut idxs_before,
         &mut idxs_after,
         len,
-        &mut middle.clone(),
-        &mut csums,
+        &mut middle_2.clone(),
+        0,
+        &mut csums[..len + 1],
         &mut ivs,
     );
 
@@ -141,11 +105,12 @@ fn perform_loop(
     idxs_before: &mut [usize],
     idxs_after: &mut [usize],
     len: usize,
-    i: &mut usize,
+    idx_start: &mut usize,
+    first_index: usize,
     csums: &mut [Csum],
     ivs: &mut [Iv],
 ) {
-    while *i < len {
+    while *idx_start < len {
         // update cum sums
         (0..len).for_each(|ind| {
             let (x, y) = (samples1[idxs_before[ind]], samples0[idxs_before[ind]]);
@@ -156,19 +121,19 @@ fn perform_loop(
         });
 
         izip!(
-            (0..len).step_by(2 * *i),
-            idxs_before.chunks(2 * *i),
-            idxs_after.chunks_mut(2 * *i),
+            (0..len).step_by(2 * *idx_start),
+            idxs_before.chunks(2 * *idx_start),
+            idxs_after.chunks_mut(2 * *idx_start),
         )
         .for_each(|(j, idx_r_j, idx_s_j)| {
             let mut k = 0;
             let mut st1 = 0;
-            let mut st2 = *i;
+            let mut st2 = *idx_start;
 
-            let e1_abs = len.min(j + *i);
+            let e1_abs = len.min(j + *idx_start);
             let e1_rel = (e1_abs - j).max(0);
 
-            let e2_rel = (len.min(2 * *i + j) - j).max(0);
+            let e2_rel = (len.min(2 * *idx_start + j) - j).max(0);
 
             while e1_rel > st1 && e2_rel > st2 {
                 let idx1 = idx_r_j[st1];
@@ -180,10 +145,12 @@ fn perform_loop(
                     idx_s_j[k] = idx2;
                     st2 += 1;
 
-                    ivs[idx2].num += e1_rel - st1;
-                    ivs[idx2].x += csums[e1_abs].x - csums[j + st1].x;
-                    ivs[idx2].y += csums[e1_abs].y - csums[j + st1].y;
-                    ivs[idx2].xy += csums[e1_abs].xy - csums[j + st1].xy;
+                    let idx2_eff = idx2 - first_index;
+
+                    ivs[idx2_eff].num += e1_rel - st1;
+                    ivs[idx2_eff].x += csums[e1_abs].x - csums[j + st1].x;
+                    ivs[idx2_eff].y += csums[e1_abs].y - csums[j + st1].y;
+                    ivs[idx2_eff].xy += csums[e1_abs].xy - csums[j + st1].xy;
                 }
 
                 k += 1;
@@ -195,7 +162,7 @@ fn perform_loop(
                 idx_s_j[k..k + e2_rel - st2].copy_from_slice(&idx_r_j[st2..e2_rel]);
             }
         });
-        *i *= 2;
+        *idx_start *= 2;
 
         idxs_before
             .iter_mut()
