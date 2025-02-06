@@ -25,4 +25,6 @@ pub fn grand_means(v: &[f64], order: Option<&[usize]>, out: &mut [f64], len: usi
                 current_sum_ascending += v_i;
             });
     }
+
+    out.iter_mut().for_each(|x| *x /= len as f64);
 }

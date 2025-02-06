@@ -69,7 +69,7 @@ fn quadratic_relation_simple() {
 #[test]
 fn quadratic_relation() {
     let mut rng = ChaCha8Rng::seed_from_u64(31);
-    let v_1: Vec<f64> = (0..2_i32.pow(10) as usize)
+    let v_1: Vec<f64> = (0..2_i32.pow(25) as usize)
         .map(move |_x| rng.gen_range(-10.0..10.0))
         .collect();
 
@@ -84,6 +84,7 @@ fn quadratic_relation() {
     println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
     println!("Dist corr: {:?}", dist_corr);
 
+    /*
     let tick = Instant::now();
     let a = dist_cov_naive(&v_1, &v_2);
     let b = dist_cov_naive(&v_1, &v_1);
@@ -99,6 +100,7 @@ fn quadratic_relation() {
     let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
 
     println!("Dist corr exp: {:?}", dist_exp_corr);
+    */
 }
 
 #[test]

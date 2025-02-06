@@ -15,7 +15,7 @@ fn dist_corr_quadratic_relation(c: &mut Criterion) {
     let mut group = c.benchmark_group("dist_corr_quadratic_relation");
 
     let mut rng = ChaCha8Rng::seed_from_u64(31);
-    let v_1: Vec<f64> = (0..2_i32.pow(14) as usize)
+    let v_1: Vec<f64> = (0..2_i32.pow(16) as usize)
         .map(move |_x| rng.gen_range(-10.0..10.0))
         .collect();
     let v_2: Vec<f64> = v_1.iter().map(|x| x * x).collect();

@@ -114,9 +114,8 @@ pub fn dist_cov_fast_helper(
                 .zip(grand_mean_v2.iter())
                 .map(|(a, b)| a * b)
                 .sum::<f64>()
-            / (len * len * len) as f64
-        + grand_mean_v1.iter().sum::<f64>() * grand_mean_v2.iter().sum::<f64>()
-            / (len * len * len * len) as f64
+            / (len) as f64
+        + grand_mean_v1.iter().sum::<f64>() * grand_mean_v2.iter().sum::<f64>() / (len * len) as f64
 }
 
 pub fn dist_var_fast_helper(v: &[f64], grand_means: &[f64], len: usize) -> f64 {
@@ -127,8 +126,8 @@ pub fn dist_var_fast_helper(v: &[f64], grand_means: &[f64], len: usize) -> f64 {
     let dist_scalar_prod = (2 * len) as f64 * sum_of_sq - 2.0 * sum.powi(2);
 
     dist_scalar_prod / (len * len) as f64
-        - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / (len * len * len) as f64
-        + grand_means.iter().sum::<f64>().powi(2) / (len * len * len * len) as f64
+        - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / (len) as f64
+        + grand_means.iter().sum::<f64>().powi(2) / (len * len) as f64
 }
 
 /// return
