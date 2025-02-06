@@ -19,6 +19,7 @@ fn dist_corr_quadratic_relation(c: &mut Criterion) {
         .map(move |_x| rng.gen_range(-10.0..10.0))
         .collect();
     let v_2: Vec<f64> = v_1.iter().map(|x| x * x).collect();
+    println!("Test: {:?}", dist_corr(&v_1, &v_2));
 
     group.bench_function("quadratic_relation", |b| {
         b.iter(|| dist_corr(&v_1, &v_2));
