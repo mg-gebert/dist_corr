@@ -1,5 +1,5 @@
 use crate::dist_corr_fast::dist_corr_fast;
-use crate::dist_corr_naive::{self, dist_cov_naive, dist_cov_naive_exp};
+use crate::dist_corr_naive::{dist_cov_naive, dist_cov_naive_exp};
 
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -68,90 +68,52 @@ fn quadratic_relation_simple() {
 
 #[test]
 fn quadratic_relation() {
-    let mut rng = ChaCha8Rng::seed_from_u64(31);
-    let v_1: Vec<f64> = (0..2_i32.pow(25) as usize)
-        .map(move |_x| rng.gen_range(-10.0..10.0))
-        .collect();
+    let test_sizes = [2_i32.pow(4), 2_i32.pow(10), 111, 897];
 
-    let v_2: Vec<f64> = v_1.iter().map(|x| x * x).collect();
-
-    let mut dist_corr = 0.0;
-
-    let tick = Instant::now();
-    for _i in 0..1 {
-        dist_corr = dist_corr_fast(&v_1, &v_2);
+    for numb in test_sizes {
+        sub_test(numb as usize, 13, |x| x * x);
     }
-    println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
-    println!("Dist corr: {:?}", dist_corr);
-
-    /*
-    let tick = Instant::now();
-    let a = dist_cov_naive(&v_1, &v_2);
-    let b = dist_cov_naive(&v_1, &v_1);
-    let c = dist_cov_naive(&v_2, &v_2);
-
-    println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
-
-    println!("Dist corr naive: {:?}", (a / (b * c).sqrt()).sqrt());
-
-    let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
-    let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
-    let dist_exp_var_v_2 = dist_cov_naive_exp(&v_2, &v_2);
-    let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
-
-    println!("Dist corr exp: {:?}", dist_exp_corr);
-    */
 }
 
 #[test]
 fn sin() {
-    let mut rng = ChaCha8Rng::seed_from_u64(31);
-    let v_1: Vec<f64> = (0..111).map(move |_x| rng.gen_range(-1.0..1.0)).collect();
-    let v_2: Vec<f64> = v_1.iter().map(|x| x.sin()).collect();
+    let test_sizes = [2_i32.pow(6), 2_i32.pow(11), 121, 597];
+
+    for numb in test_sizes {
+        sub_test(numb as usize, 21, |x| x.sin());
+    }
+}
+
+#[test]
+fn linear_relation() {
+    let test_sizes = [2_i32.pow(7), 2_i32.pow(9), 131, 577];
+
+    for numb in test_sizes {
+        sub_test(numb as usize, 21, |x| x * 0.1 - 0.2);
+    }
+}
+
+fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
+    println!("------------------------");
+    println!("Sample size: {:?}", sample_size);
+    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    let v_1: Vec<f64> = (0..sample_size)
+        .map(move |_x| rng.gen_range(-10.0..10.0))
+        .collect();
+
+    let v_2: Vec<f64> = v_1.iter().map(func).collect();
 
     let dist_corr = dist_corr_fast(&v_1, &v_2);
-
     println!("Dist corr: {:?}", dist_corr);
 
-    let tick = Instant::now();
     let a = dist_cov_naive(&v_1, &v_2);
     let b = dist_cov_naive(&v_1, &v_1);
     let c = dist_cov_naive(&v_2, &v_2);
 
     let dist_corr_naive = (a / (b * c).sqrt()).sqrt();
-    println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
+    println!("Dist corr naive: {:?}", dist_corr_naive);
 
-    println!("Dist corr naive: {:?}", (a / (b * c).sqrt()).sqrt());
-
-    assert!((dist_corr - dist_corr_naive).abs() < 1e-5);
-}
-
-#[test]
-fn linear_relation() {
-    let mut rng = ChaCha8Rng::seed_from_u64(31);
-    let v_1: Vec<f64> = (0..16000)
-        .map(move |_x| rng.gen_range(-10.0..10.0))
-        .collect();
-
-    //let mut v_1_sorted = v_1.to_vec();
-    //v_1_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let v_2: Vec<f64> = v_1.iter().map(|x| 0.1 * x + 0.2).collect();
-
-    let mut dist_corr = 0.0;
-
-    let tick = Instant::now();
-    for _i in 0..100 {
-        dist_corr = dist_corr_fast(&v_1, &v_2);
-    }
-    println!("Time {}s", tick.elapsed().as_secs_f32() / 100.0);
-
-    /*
-        let tick = Instant::now();
-        let a = dist_cov_naive(&v_2, &v_2);
-
-        println!("Time {}s", tick.elapsed().as_secs_f32() / 1.0);
-    */
-    println!("Dist corr: {:?}", dist_corr);
+    assert!((dist_corr_naive - dist_corr).abs() < 1e-10);
 
     let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
     let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
