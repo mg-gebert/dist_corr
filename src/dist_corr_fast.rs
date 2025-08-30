@@ -1,7 +1,8 @@
 use crate::frob_inner_product::compute_frobenius_inner_product;
-use crate::grand_mean::grand_means;
+use crate::grand_mean::{grand_means, grand_means_weighted};
 use rayon::join;
 use rayon::prelude::*;
+use std::time::Instant;
 
 pub fn dist_corr_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
     let v1_len = v_1.len();
@@ -26,11 +27,11 @@ pub fn dist_corr_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
     let (dist_var_v1, dist_var_v2) = join(
         || {
             grand_means(&v1_shuffled, Some(&ordering), &mut grand_means_v1, v1_len);
-            dist_var_fast_helper(&v1_shuffled, &grand_means_v1, v1_len)
+            dist_var_fast_helper(&v1_shuffled, &grand_means_v1, v1_len as f64)
         },
         || {
             grand_means(&v2_sorted, None, &mut grand_means_v2, v1_len);
-            dist_var_fast_helper(&v2_sorted, &grand_means_v2, v1_len)
+            dist_var_fast_helper(&v2_sorted, &grand_means_v2, v1_len as f64)
         },
     );
 
@@ -95,7 +96,7 @@ pub fn dist_var_fast(v: &[f64]) -> f64 {
     // update grand means
     grand_means(&v_sorted, None, &mut grand_means_v_sorted, v_len);
 
-    dist_var_fast_helper(v, &grand_means_v_sorted, v_len)
+    dist_var_fast_helper(v, &grand_means_v_sorted, v_len as f64)
 }
 
 pub fn dist_cov_fast_helper(
@@ -118,16 +119,16 @@ pub fn dist_cov_fast_helper(
         + grand_mean_v1.iter().sum::<f64>() * grand_mean_v2.iter().sum::<f64>() / (len * len) as f64
 }
 
-pub fn dist_var_fast_helper(v: &[f64], grand_means: &[f64], len: usize) -> f64 {
+pub fn dist_var_fast_helper(v: &[f64], grand_means: &[f64], len: f64) -> f64 {
     let (sum, sum_of_sq) = v.iter().fold((0.0, 0.0), |(sum, sum_of_sq), &x| {
         (sum + x, sum_of_sq + x * x)
     });
 
-    let dist_scalar_prod = (2 * len) as f64 * sum_of_sq - 2.0 * sum.powi(2);
+    let dist_scalar_prod = 2.0 * len * sum_of_sq - 2.0 * sum.powi(2);
+    let len_sq = len * len;
 
-    dist_scalar_prod / (len * len) as f64
-        - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / (len) as f64
-        + grand_means.iter().sum::<f64>().powi(2) / (len * len) as f64
+    dist_scalar_prod / len_sq - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / len
+        + grand_means.iter().sum::<f64>().powi(2) / len_sq
 }
 
 /// return
@@ -149,4 +150,161 @@ fn order_wrt_v2(v_1: &[f64], v_2: &[f64], ordering: &mut [usize]) -> (Vec<f64>, 
     ordering.par_sort_unstable_by(|&i, &j| v1_shuffled[i].partial_cmp(&v1_shuffled[j]).unwrap());
 
     (v1_shuffled, v2_ordered)
+}
+
+fn order_wrt_v2_simple(v1: &[f64], v2: &[f64]) -> (Vec<f64>, Vec<f64>) {
+    // Create a sorted list of indices based on v2
+    let mut indices: Vec<usize> = (0..v2.len()).collect();
+    indices.par_sort_unstable_by(|&i, &j| v2[i].partial_cmp(&v2[j]).unwrap());
+
+    // Map sorted indices to values in v1 and v2
+    indices.iter().map(|&i| (v1[i], v2[i])).unzip()
+}
+
+pub fn dist_cov_binary_sqrt(v_1: &[f64], v_2: &[f64]) -> f64 {
+    let length = v_1.len() as f64;
+    let length_sqrt = length.sqrt();
+
+    let (v1_sum, v2_sum, v1_v2_sum) = v_1.iter().zip(v_2.iter()).fold(
+        (0.0, 0.0, 0.0),
+        |(v1_sum, v2_sum, v1_v2_sum), (&v1_i, &v2_i)| {
+            (
+                v1_sum + v1_i,
+                v2_sum + v2_i,
+                v1_v2_sum + (2.0 * v1_i - 1.0) * (2.0 * v2_i - 1.0),
+            )
+        },
+    );
+
+    let v1_helper = 2.0 * v1_sum / length_sqrt - length_sqrt;
+    let v2_helper = 2.0 * v2_sum / length_sqrt - length_sqrt;
+
+    (v1_v2_sum - v1_helper * v2_helper).abs() / (2.0 * length)
+}
+
+pub fn dist_corr_fast_binary(v_1: &[f64], v_2: &[f64]) -> f64 {
+    let length = v_1.len() as f64;
+    let length_sqrt = length.sqrt();
+
+    let (v1_sum, v2_sum, v1_v2_sum, v1_v1_sum, v2_v2_sum) = v_1.iter().zip(v_2.iter()).fold(
+        (0.0, 0.0, 0.0, 0.0, 0.0),
+        |(v1_sum, v2_sum, v1_v2_sum, v1_v1_sum, v2_v2_sum), (&v1_i, &v2_i)| {
+            (
+                v1_sum + v1_i,
+                v2_sum + v2_i,
+                v1_v2_sum + (2.0 * v1_i - 1.0) * (2.0 * v2_i - 1.0),
+                v1_v1_sum + (2.0 * v1_i - 1.0) * (2.0 * v1_i - 1.0),
+                v2_v2_sum + (2.0 * v2_i - 1.0) * (2.0 * v2_i - 1.0),
+            )
+        },
+    );
+
+    let v1_helper = 2.0 * v1_sum / length_sqrt - length_sqrt;
+    let v2_helper = 2.0 * v2_sum / length_sqrt - length_sqrt;
+
+    (v1_v2_sum - v1_helper * v2_helper).abs()
+        / ((v2_v2_sum - v2_helper * v2_helper).abs() * (v1_v1_sum - v1_helper * v1_helper).abs())
+            .sqrt()
+}
+
+/// v_1 should be binary
+pub fn dist_cov_one_binary(v_1: &[f64], v_2: &[f64]) -> f64 {
+    let length = v_1.len();
+
+    //let tick = Instant::now();
+    // sort v_1,v_2 with respect to ordering of v_2
+    let (mut v1_transformed, v2_sorted) = order_wrt_v2_simple(v_1, v_2);
+    //println!("Ordering took {}s", tick.elapsed().as_secs_f32());
+
+    //let tick = Instant::now();
+    // initialize grand means
+    let mut grand_means_v2 = vec![0.0; length];
+    let mut grand_means_v2_weighted = vec![0.0; length];
+
+    v1_transformed
+        .iter_mut()
+        .for_each(|vi| *vi = 2.0 * *vi - 1.0);
+    //println!("Initialising took {}s", tick.elapsed().as_secs_f32());
+
+    //let tick = Instant::now();
+    let ((), ()) = join(
+        || {
+            grand_means(&v2_sorted, None, &mut grand_means_v2, length);
+        },
+        || {
+            grand_means_weighted(
+                &v2_sorted,
+                &v1_transformed,
+                &mut grand_means_v2_weighted,
+                length,
+            );
+        },
+    );
+
+    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
+        .iter()
+        .zip(grand_means_v2_weighted.iter())
+        .zip(grand_means_v2.iter())
+        .fold((0.0, 0.0, 0.0, 0.0), |acc, ((vi, vwi_weighted), vwi)| {
+            (
+                acc.0 + vi * vwi_weighted,
+                acc.1 + vi,
+                acc.2 + vi * vwi,
+                acc.3 + vwi,
+            )
+        });
+
+    -0.5 * v1_dist_v1 / (length as f64) + v1_1 * v1_dist_1 / (length.pow(2) as f64)
+        - 0.5 * v1_1.powi(2) * dist_1 / (length.pow(3) as f64)
+}
+
+/// v_1 should be binary
+pub fn dist_corr_fast_one_binary(v_1: &[f64], v_2: &[f64]) -> f64 {
+    let length = v_1.len();
+
+    // sort v_1,v_2 with respect to ordering of v_2
+    let (mut v1_transformed, v2_sorted) = order_wrt_v2_simple(v_1, v_2);
+
+    // initialize grand means
+    let mut grand_means_v2 = vec![0.0; length];
+    let mut grand_means_v2_weighted = vec![0.0; length];
+
+    v1_transformed
+        .iter_mut()
+        .for_each(|vi| *vi = 2.0 * *vi - 1.0);
+
+    let ((), ()) = join(
+        || {
+            grand_means(&v2_sorted, None, &mut grand_means_v2, length);
+        },
+        || {
+            grand_means_weighted(
+                &v2_sorted,
+                &v1_transformed,
+                &mut grand_means_v2_weighted,
+                length,
+            );
+        },
+    );
+
+    let dist_var_v2 = dist_var_fast_helper(&v2_sorted, &grand_means_v2, length as f64);
+    let dist_var_v1_root = dist_cov_binary_sqrt(v_1, v_1);
+
+    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
+        .iter()
+        .zip(grand_means_v2_weighted.iter())
+        .zip(grand_means_v2.iter())
+        .fold((0.0, 0.0, 0.0, 0.0), |acc, ((vi, vwi_weighted), vwi)| {
+            (
+                acc.0 + vi * vwi_weighted,
+                acc.1 + vi,
+                acc.2 + vi * vwi,
+                acc.3 + vwi,
+            )
+        });
+
+    ((-0.5 * v1_dist_v1 / (length as f64) + v1_1 * v1_dist_1 / (length.pow(2) as f64)
+        - 0.5 * v1_1.powi(2) * dist_1 / (length.pow(3) as f64))
+        / (dist_var_v2.sqrt() * dist_var_v1_root))
+        .sqrt()
 }

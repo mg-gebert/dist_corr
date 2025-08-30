@@ -24,10 +24,9 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
     let mut idxs_after: Vec<usize> = vec![0; len];
 
     let num_threads = rayon::current_num_threads();
-    //println!("Number of available threads in Rayon: {}", num_threads);
+    println!("Number of available threads in Rayon: {}", num_threads);
 
     let middle = (len as f64 / num_threads as f64).ceil() as usize;
-    let middle_2 = middle; // * num_threads / 2;
 
     let mut ivs = vec![Iv::default(); len];
     let mut csums = vec![Csum::default(); len + num_threads];
@@ -53,31 +52,6 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
                 );
             },
         );
-
-    /*
-
-    idxs_before
-        .par_chunks_mut(middle_2)
-        .zip(idxs_after.par_chunks_mut(middle_2))
-        .zip(ivs.par_chunks_mut(middle_2))
-        .zip(csums.par_chunks_mut(middle_2 + 1))
-        .enumerate()
-        .for_each(
-            |(j, (((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk))| {
-                perform_loop(
-                    samples0,
-                    samples1,
-                    idxs_before_chunk,
-                    idxs_after_chunk,
-                    ivs_chunk.len(),
-                    &mut middle.clone(),
-                    j * middle_2,
-                    csums_chunk,
-                    ivs_chunk,
-                );
-            },
-        );
-        */
 
     perform_loop(
         samples0,
