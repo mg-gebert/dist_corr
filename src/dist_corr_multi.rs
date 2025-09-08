@@ -3,7 +3,7 @@ use itertools::izip;
 use rayon::prelude::*;
 
 // move
-pub fn dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
+pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
     let data_length = v_1.len() as f64;
     let dist_frob_norm = v_1
         .par_iter()
@@ -85,7 +85,7 @@ pub fn dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
 }
 
 // move
-pub fn dist_cov_multi_exp(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
+pub fn _dist_cov_multi_exp(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
     let data_length = v_1.len() as f64;
     let dist_frob_norm = (v_1
         .par_iter()

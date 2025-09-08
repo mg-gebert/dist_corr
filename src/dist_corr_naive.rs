@@ -2,7 +2,7 @@
 use rayon::prelude::*;
 
 // move
-pub fn dist_cov_naive(data_1: &[f64], data_2: &[f64]) -> f64 {
+pub fn _dist_cov_naive(data_1: &[f64], data_2: &[f64]) -> f64 {
     let data_length = data_1.len() as f64;
     let dist_hs_norm = data_1
         .par_iter()
@@ -43,7 +43,7 @@ pub fn dist_cov_naive(data_1: &[f64], data_2: &[f64]) -> f64 {
 }
 
 // move
-pub fn dist_cov_naive_exp(v_1: &[f64], v_2: &[f64]) -> f64 {
+pub fn _dist_cov_naive_exp(v_1: &[f64], v_2: &[f64]) -> f64 {
     let data_length = v_1.len() as f64;
     let dist_frob_norm = (v_1
         .par_iter()

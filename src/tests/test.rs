@@ -1,5 +1,5 @@
 use crate::dist_corr_fast::dist_corr_fast;
-use crate::dist_corr_naive::{dist_cov_naive, dist_cov_naive_exp};
+use crate::dist_corr_naive::{_dist_cov_naive, _dist_cov_naive_exp};
 
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -16,9 +16,9 @@ fn independent() {
 
     assert!(dist_corr < f64::EPSILON);
 
-    let dist_cov_naiv = dist_cov_naive(&v_1, &v_2);
-    let dist_var_v_1 = dist_cov_naive(&v_1, &v_1);
-    let dist_var_v_2 = dist_cov_naive(&v_2, &v_2);
+    let dist_cov_naiv = _dist_cov_naive(&v_1, &v_2);
+    let dist_var_v_1 = _dist_cov_naive(&v_1, &v_1);
+    let dist_var_v_2 = _dist_cov_naive(&v_2, &v_2);
     let dist_corr_naiv = (dist_cov_naiv / (dist_var_v_1 * dist_var_v_2).sqrt()).sqrt();
 
     assert!(dist_corr_naiv < f64::EPSILON);
@@ -27,9 +27,9 @@ fn independent() {
     println!("Dist corr: {:?}", dist_corr);
     println!("Dist corr naive: {:?}", dist_corr_naiv);
 
-    let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
-    let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
-    let dist_exp_var_v_2 = dist_cov_naive_exp(&v_2, &v_2);
+    let dist_exp_cov = _dist_cov_naive_exp(&v_1, &v_2);
+    let dist_exp_var_v_1 = _dist_cov_naive_exp(&v_1, &v_1);
+    let dist_exp_var_v_2 = _dist_cov_naive_exp(&v_2, &v_2);
     let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
 
     println!("Dist corr exp: {:?}", dist_exp_corr);
@@ -55,9 +55,9 @@ fn independent_2() {
 
     //assert!(dist_corr < f64::EPSILON);
 
-    let dist_cov_naiv = dist_cov_naive(&v_1, &v_2);
-    let dist_var_v_1 = dist_cov_naive(&v_1, &v_1);
-    let dist_var_v_2 = dist_cov_naive(&v_2, &v_2);
+    let dist_cov_naiv = _dist_cov_naive(&v_1, &v_2);
+    let dist_var_v_1 = _dist_cov_naive(&v_1, &v_1);
+    let dist_var_v_2 = _dist_cov_naive(&v_2, &v_2);
     let dist_corr_naiv = (dist_cov_naiv / (dist_var_v_1 * dist_var_v_2).sqrt()).sqrt();
 
     //assert!(dist_corr_naiv < f64::EPSILON);
@@ -66,9 +66,9 @@ fn independent_2() {
     println!("Dist corr: {:?}", dist_corr);
     println!("Dist corr naive: {:?}", dist_corr_naiv);
 
-    let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
-    let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
-    let dist_exp_var_v_2 = dist_cov_naive_exp(&v_2, &v_2);
+    let dist_exp_cov = _dist_cov_naive_exp(&v_1, &v_2);
+    let dist_exp_var_v_1 = _dist_cov_naive_exp(&v_1, &v_1);
+    let dist_exp_var_v_2 = _dist_cov_naive_exp(&v_2, &v_2);
     let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
 
     println!("Dist corr exp: {:?}", dist_exp_corr);
@@ -87,9 +87,9 @@ fn quadratic_relation_simple() {
     let solution = (2.0_f64 / 40.0_f64.sqrt()).sqrt();
     assert!((dist_corr - solution).abs() < 1e-10);
 
-    let dist_cov_naiv = dist_cov_naive(&v_1, &v_2);
-    let dist_var_v_1 = dist_cov_naive(&v_1, &v_1);
-    let dist_var_v_2 = dist_cov_naive(&v_2, &v_2);
+    let dist_cov_naiv = _dist_cov_naive(&v_1, &v_2);
+    let dist_var_v_1 = _dist_cov_naive(&v_1, &v_1);
+    let dist_var_v_2 = _dist_cov_naive(&v_2, &v_2);
     let dist_corr_naiv = (dist_cov_naiv / (dist_var_v_1 * dist_var_v_2).sqrt()).sqrt();
     assert!((dist_corr - solution).abs() < 1e-10);
 
@@ -97,9 +97,9 @@ fn quadratic_relation_simple() {
     println!("Dist corr: {:?}", dist_corr);
     println!("Dist corr naive: {:?}", dist_corr_naiv);
 
-    let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
-    let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
-    let dist_exp_var_v_2 = dist_cov_naive_exp(&v_2, &v_2);
+    let dist_exp_cov = _dist_cov_naive_exp(&v_1, &v_2);
+    let dist_exp_var_v_1 = _dist_cov_naive_exp(&v_1, &v_1);
+    let dist_exp_var_v_2 = _dist_cov_naive_exp(&v_2, &v_2);
     let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
 
     println!("Dist corr exp: {:?}", dist_exp_corr);
@@ -128,7 +128,7 @@ fn linear_relation() {
     let test_sizes = [2_i32.pow(14), 2_i32.pow(9), 131, 577];
 
     for numb in test_sizes {
-        sub_test(numb as usize, 21, |x| x * 0.0000000000001 - 0.3);
+        sub_test(numb as usize, 21, |x| x * 0.000001 - 0.3);
     }
 }
 
@@ -174,18 +174,18 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
     let dist_corr = dist_corr_fast(&v_1, &v_2);
     println!("Dist corr: {:?}", dist_corr);
 
-    let a = dist_cov_naive(&v_1, &v_2);
-    let b = dist_cov_naive(&v_1, &v_1);
-    let c = dist_cov_naive(&v_2, &v_2);
+    let a = _dist_cov_naive(&v_1, &v_2);
+    let b = _dist_cov_naive(&v_1, &v_1);
+    let c = _dist_cov_naive(&v_2, &v_2);
 
     let dist_corr_naive = (a / (b * c).sqrt()).sqrt();
     println!("Dist corr naive: {:?}", dist_corr_naive);
 
     //assert!((dist_corr_naive - dist_corr).abs() < 1e-2);
 
-    let dist_exp_cov = dist_cov_naive_exp(&v_1, &v_2);
-    let dist_exp_var_v_1 = dist_cov_naive_exp(&v_1, &v_1);
-    let dist_exp_var_v_2 = dist_cov_naive_exp(&v_2, &v_2);
+    let dist_exp_cov = _dist_cov_naive_exp(&v_1, &v_2);
+    let dist_exp_var_v_1 = _dist_cov_naive_exp(&v_1, &v_1);
+    let dist_exp_var_v_2 = _dist_cov_naive_exp(&v_2, &v_2);
     let dist_exp_corr = (dist_exp_cov / (dist_exp_var_v_1 * dist_exp_var_v_2).sqrt()).sqrt();
 
     println!("Dist corr exp: {:?}", dist_exp_corr);

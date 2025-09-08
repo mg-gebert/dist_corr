@@ -26,16 +26,16 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
     let num_threads = rayon::current_num_threads();
     println!("Number of available threads in Rayon: {}", num_threads);
 
-    let middle = (len as f64 / num_threads as f64).ceil() as usize;
+    let chunk_size = (len as f64 / num_threads as f64).ceil() as usize;
 
     let mut ivs = vec![Iv::default(); len];
     let mut csums = vec![Csum::default(); len + num_threads];
 
     idxs_before
-        .par_chunks_mut(middle)
-        .zip(idxs_after.par_chunks_mut(middle))
-        .zip(ivs.par_chunks_mut(middle))
-        .zip(csums.par_chunks_mut(middle + 1))
+        .par_chunks_mut(chunk_size)
+        .zip(idxs_after.par_chunks_mut(chunk_size))
+        .zip(ivs.par_chunks_mut(chunk_size))
+        .zip(csums.par_chunks_mut(chunk_size + 1))
         .enumerate()
         .for_each(
             |(j, (((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk))| {
@@ -46,7 +46,7 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
                     idxs_after_chunk,
                     ivs_chunk.len(),
                     &mut 1,
-                    j * middle,
+                    j * chunk_size,
                     csums_chunk,
                     ivs_chunk,
                 );
@@ -59,7 +59,7 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
         &mut idxs_before,
         &mut idxs_after,
         len,
-        &mut middle.clone(),
+        &mut chunk_size.clone(),
         0,
         &mut csums[..len + 1],
         &mut ivs,
@@ -74,6 +74,7 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
     sum - 2.0 * cov_term
 }
 
+#[allow(clippy::too_many_arguments)]
 fn perform_loop(
     samples0: &[f64],
     samples1: &[f64],

@@ -1,8 +1,9 @@
-use crate::dist_corr_fast::{
-    dist_corr_fast, dist_corr_fast_binary, dist_corr_fast_one_binary, dist_cov_binary_sqrt,
-    dist_cov_fast, dist_cov_one_binary,
+use crate::api::{dist_corr_binary, dist_corr_one_binary};
+use crate::dist_corr_binary::{
+    dist_corr_fast_one_binary, dist_cov_binary_sqrt, dist_cov_one_binary,
 };
-use crate::dist_corr_naive::dist_cov_naive;
+use crate::dist_corr_fast::{dist_corr_fast, dist_cov_fast};
+use crate::dist_corr_naive::_dist_cov_naive;
 
 use std::time::Instant;
 
@@ -20,9 +21,9 @@ fn simple_binary() {
 
     assert!(dist_corr < f64::EPSILON);
 
-    let dist_cov_naiv = dist_cov_naive(&v_1, &v_2);
-    let dist_var_v_1 = dist_cov_naive(&v_1, &v_1);
-    let dist_var_v_2 = dist_cov_naive(&v_2, &v_2);
+    let dist_cov_naiv = _dist_cov_naive(&v_1, &v_2);
+    let dist_var_v_1 = _dist_cov_naive(&v_1, &v_1);
+    let dist_var_v_2 = _dist_cov_naive(&v_2, &v_2);
     let dist_corr_naiv = (dist_cov_naiv / (dist_var_v_1 * dist_var_v_2).sqrt()).sqrt();
 
     assert!(dist_corr_naiv < f64::EPSILON);
@@ -79,9 +80,9 @@ fn simple_one_binary() {
 
     assert!(dist_corr < f64::EPSILON);
 
-    let dist_cov_naiv = dist_cov_naive(&v_1, &v_2);
-    let dist_var_v_1 = dist_cov_naive(&v_1, &v_1);
-    let dist_var_v_2 = dist_cov_naive(&v_2, &v_2);
+    let dist_cov_naiv = _dist_cov_naive(&v_1, &v_2);
+    let dist_var_v_1 = _dist_cov_naive(&v_1, &v_1);
+    let dist_var_v_2 = _dist_cov_naive(&v_2, &v_2);
     let dist_corr_naiv = (dist_cov_naiv / (dist_var_v_1 * dist_var_v_2).sqrt()).sqrt();
 
     assert!(dist_corr_naiv < f64::EPSILON);
@@ -127,7 +128,7 @@ fn medium_one_binary() {
 
 #[test]
 fn hard_one_binary() {
-    let sample_size = 5000;
+    let sample_size = 100000;
     let mut rng_1 = ChaCha8Rng::seed_from_u64(134);
     let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
@@ -142,19 +143,26 @@ fn hard_one_binary() {
         .collect();
 
     let tick = Instant::now();
-
     let dist_corr = dist_corr_fast(&v_1, &v_2);
-
     println!("Time dist corr fast {}s", tick.elapsed().as_secs_f32());
     println!("Dist corr: {:?}", dist_corr);
 
     let tick = Instant::now();
-    let dist_corr_binary = dist_corr_fast_one_binary(&v_1, &v_2);
+    let dist_corr_one_binary = dist_corr_one_binary(&v_1, &v_2);
     println!(
-        "Time dist corr one  binary {}s",
+        "Time dist corr one binary {}s",
         tick.elapsed().as_secs_f32()
     );
-    println!("Dist corr one binary: {:?}", dist_corr_binary);
+    println!("Dist corr one binary: {:?}", dist_corr_one_binary);
+
+    let tick = Instant::now();
+    let dist_corr_binary = dist_corr_binary(&v_1, &v_2);
+    println!("Time dist corr binary {}s", tick.elapsed().as_secs_f32());
+    println!("Dist corr binary: {:?}", dist_corr_binary);
+
+    println!("-------------------------");
+    println!("Dist Cov");
+    println!("-------------------------");
 
     let tick = Instant::now();
     let dist_cov_fast = dist_cov_fast(&v_1, &v_2);
@@ -163,20 +171,15 @@ fn hard_one_binary() {
 
     let tick = Instant::now();
     let dist_cov_one_binary = dist_cov_one_binary(&v_1, &v_2);
-
     println!("Time dist cov one binary {}s", tick.elapsed().as_secs_f32());
     println!("Dist cov one binary: {:?}", dist_cov_one_binary);
+
+    println!("-------------------------");
+    println!("-------------------------");
 
     let tick = Instant::now();
     let dist_cov_binary = dist_cov_binary_sqrt(&v_1, &v_2);
 
     println!("Time dist cov binary {}s", tick.elapsed().as_secs_f32());
     println!("Dist cov binary: {:?}", (dist_cov_binary).powi(2));
-
-    let tick = Instant::now();
-
-    let dist_corr_binary = dist_corr_fast_binary(&v_1, &v_2);
-
-    println!("Time dist corr binary {}s", tick.elapsed().as_secs_f32());
-    println!("Dist corr binary: {:?}", dist_corr_binary);
 }
