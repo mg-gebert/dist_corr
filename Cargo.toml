@@ -1,6 +1,7 @@
 [package]
 name = "dist_corr"
 version = "0.1.0"
+authors = ["Martin Gebert"]
 edition = "2021"
 
 [dependencies]
