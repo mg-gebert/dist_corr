@@ -6,10 +6,12 @@
 //!
 //! ```
 //! use dist_corr::DistCorrelation;
+//!
 //! let v1 = vec![1.0, 2.0, 3.0];
 //! let v2 = vec![2.0, 4.0, 6.0];
-//! let r = DistCorrelation::compute(&v1, &v2);
-//! println!("{}", r);
+//! let dist_corr = DistCorrelation;
+//! let result = dist_corr.compute(&v1, &v2);
+//! println!("{:?}", result);
 //! ```
 //!
 //! See README.md for full usage and explanations.
@@ -29,6 +31,7 @@ pub(crate) mod tests;
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Export
 
+pub use api::dist_var;
 #[doc(inline)]
 pub use api::DistCorrelation;
 #[doc(inline)]

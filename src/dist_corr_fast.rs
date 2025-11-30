@@ -4,32 +4,28 @@
 use rayon::join;
 use rayon::prelude::*;
 
+use std::error::Error;
+
 use crate::frob_inner_product::compute_frobenius_inner_product;
 use crate::grand_mean::grand_means;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
-pub fn dist_corr_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
-    let v1_len = v_1.len();
-
-    assert!(
-        v1_len == v_2.len(),
-        "Length of v_1 and v_2 must be identical."
-    );
-    assert!(v1_len > 0, "v_1 and v_2 must not be empty.");
+pub fn dist_corr_fast(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+    let v1_len = v1.len();
 
     // initialize ordering
     let mut ordering: Vec<usize> = (0..v1_len).collect();
-    // sort v_1,v_2 with respect to ordering of v_2
-    let (v1_shuffled, v2_sorted) = order_wrt_v2(v_1, v_2, &mut ordering);
+    // sort v1,v2 with respect to ordering of v2
+    let (v1_shuffled, v2_sorted) = order_wrt_v2(v1, v2, &mut ordering);
 
     // initialize grand means
     let mut grand_means_v1 = vec![0.0; v1_len];
     let mut grand_means_v2 = vec![0.0; v1_len];
 
-    // compute distance variance of v_1 and v_2
-    // update grand means with grand means of v_1 and v_2
+    // compute distance variance of v1 and v2
+    // update grand means with grand means of v1 and v2
     let (dist_var_v1, dist_var_v2) = join(
         || {
             grand_means(&v1_shuffled, Some(&ordering), &mut grand_means_v1, v1_len);
@@ -49,27 +45,21 @@ pub fn dist_corr_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
         v1_len,
     );
 
-    (dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt()).sqrt()
+    Ok((dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt()).sqrt())
 }
 
-pub fn dist_cov_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
-    let v1_len = v_1.len();
-
-    assert!(
-        v1_len == v_2.len(),
-        "Length of v_1 and v_2 must be identical."
-    );
-    assert!(v1_len > 0, "v_1 and v_2 must not be empty.");
+pub fn dist_cov_fast(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+    let v1_len = v1.len();
 
     let mut ordering: Vec<usize> = (0..v1_len).collect();
-    // sort v_1,v_2 with respect to ordering of v_2
-    let (v1_shuffled, v2_sorted) = order_wrt_v2(v_1, v_2, &mut ordering);
+    // sort v1,v2 with respect to ordering of v2
+    let (v1_shuffled, v2_sorted) = order_wrt_v2(v1, v2, &mut ordering);
 
     // initialize grand means
     let mut grand_means_v1 = vec![0.0; v1_len];
     let mut grand_means_v2 = vec![0.0; v1_len];
 
-    // update grand means with grand means of v_1 and v_2
+    // update grand means with grand means of v1 and v2
     let ((), ()) = join(
         || {
             grand_means(&v1_shuffled, Some(&ordering), &mut grand_means_v1, v1_len);
@@ -79,13 +69,13 @@ pub fn dist_cov_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
         },
     );
 
-    dist_cov_fast_helper(
+    Ok(dist_cov_fast_helper(
         &v1_shuffled,
         &v2_sorted,
         &grand_means_v1,
         &grand_means_v2,
         v1_len,
-    )
+    ))
 }
 
 pub fn dist_var_fast(v: &[f64]) -> f64 {
@@ -140,19 +130,19 @@ pub fn dist_var_fast_helper(v: &[f64], grand_means: &[f64], len: f64) -> f64 {
 /// return
 /// (Vec<f64>, Vec<f64>: (v1_shuffled, v2_ordered)
 /// where (v1_shuffled, v2_ordered)
-/// are a simultanously permutation of (v_1, v_2)
-/// such that v_2 is sorted increasingly
+/// are a simultanously permutation of (v1, v2)
+/// such that v2 is sorted increasingly
 ///
-/// ordering is adapted to reflect the indices changes needed to sort v_1
-fn order_wrt_v2(v_1: &[f64], v_2: &[f64], ordering: &mut [usize]) -> (Vec<f64>, Vec<f64>) {
-    // compute ordering of v_2
-    ordering.par_sort_unstable_by(|&i, &j| v_2[i].partial_cmp(&v_2[j]).unwrap());
+/// ordering is adapted to reflect the indices changes needed to sort v1
+fn order_wrt_v2(v1: &[f64], v2: &[f64], ordering: &mut [usize]) -> (Vec<f64>, Vec<f64>) {
+    // compute ordering of v2
+    ordering.par_sort_unstable_by(|&i, &j| v2[i].partial_cmp(&v2[j]).unwrap());
 
-    // sort v_1 and v_2 according to above ordering of v_2
+    // sort v1 and v2 according to above ordering of v2
     let (v1_shuffled, v2_ordered): (Vec<f64>, Vec<f64>) =
-        ordering.iter().map(|&i| (v_1[i], v_2[i])).unzip();
+        ordering.iter().map(|&i| (v1[i], v2[i])).unzip();
 
-    // update ordering to reflect ordering of v_1
+    // update ordering to reflect ordering of v1
     ordering.par_sort_unstable_by(|&i, &j| v1_shuffled[i].partial_cmp(&v1_shuffled[j]).unwrap());
 
     (v1_shuffled, v2_ordered)
