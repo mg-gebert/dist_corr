@@ -1,4 +1,10 @@
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Using
+
 use itertools::izip;
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Implementation
 
 /// out must be all 0s
 pub fn grand_means(v: &[f64], order: Option<&[usize]>, out: &mut [f64], len: usize) {

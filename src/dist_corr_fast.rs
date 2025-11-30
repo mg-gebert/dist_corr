@@ -1,7 +1,14 @@
-use crate::frob_inner_product::compute_frobenius_inner_product;
-use crate::grand_mean::grand_means;
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Using
+
 use rayon::join;
 use rayon::prelude::*;
+
+use crate::frob_inner_product::compute_frobenius_inner_product;
+use crate::grand_mean::grand_means;
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Implementation
 
 pub fn dist_corr_fast(v_1: &[f64], v_2: &[f64]) -> f64 {
     let v1_len = v_1.len();

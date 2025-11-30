@@ -1,3 +1,19 @@
+//! dist_corr — distance correlation utilities
+//!
+//! High-performance distance-correlation routines for 1D data.
+//!
+//! # Quick example
+//!
+//! ```
+//! use dist_corr::DistCorrelation;
+//! let v1 = vec![1.0, 2.0, 3.0];
+//! let v2 = vec![2.0, 4.0, 6.0];
+//! let r = DistCorrelation::compute(&v1, &v2);
+//! println!("{}", r);
+//! ```
+//!
+//! See README.md for full usage and explanations.
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Modules
 
@@ -14,7 +30,6 @@ pub(crate) mod tests;
 // Export
 
 #[doc(inline)]
-pub use api::{
-    dist_corr, dist_corr_binary, dist_corr_one_binary, dist_cov, dist_cov_binary,
-    dist_cov_one_binary, dist_var,
-};
+pub use api::DistCorrelation;
+#[doc(inline)]
+pub use api::DistCovariance;

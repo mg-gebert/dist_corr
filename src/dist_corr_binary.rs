@@ -1,25 +1,31 @@
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Using
+
 use crate::dist_corr_fast::{dist_var_fast_helper, order_wrt_v2_simple};
 use crate::grand_mean::{grand_means, grand_means_weighted};
 use rayon::join;
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Implementation
+
 pub fn dist_corr_fast_binary(v_1: &[f64], v_2: &[f64]) -> f64 {
-    let length = v_1.len() as f64;
+    let (n00, n01, n10, n11) =
+        v_1.iter()
+            .zip(v_2.iter())
+            .fold(
+                (0.0, 0.0, 0.0, 0.0),
+                |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
+                    (0.0, 0.0) => (n00 + 1.0, n01, n10, n11),
+                    (0.0, _) => (n00, n01 + 1.0, n10, n11),
+                    (_, 0.0) => (n00, n01, n10 + 1.0, n11),
+                    (_, _) => (n00, n01, n10, n11 + 1.0),
+                },
+            );
 
-    let (v1_sum, v2_sum, v1_v2_sum) = v_1.iter().zip(v_2.iter()).fold(
-        (0.0, 0.0, 0.0),
-        |(v1_sum, v2_sum, v1_v2_sum), (&v1_i, &v2_i)| {
-            (
-                v1_sum + (2.0 * v1_i - 1.0),
-                v2_sum + (2.0 * v2_i - 1.0),
-                v1_v2_sum + (2.0 * v1_i - 1.0) * (2.0 * v2_i - 1.0),
-            )
-        },
-    );
+    let numerator: f64 = n11 * n00 - n10 * n01;
+    let denominator: f64 = ((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10)).sqrt();
 
-    (v1_v2_sum - v1_sum * v2_sum / length).abs()
-        / ((length - v1_sum * v1_sum / length) * (length - v2_sum * v2_sum / length))
-            .abs()
-            .sqrt()
+    -numerator / denominator
 }
 
 /// v_1 should be binary

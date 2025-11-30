@@ -1,5 +1,7 @@
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Using
+
 use itertools::izip;
-// Import
 use rayon::prelude::*;
 
 // move
@@ -15,11 +17,11 @@ pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
                 .zip(v_2[i..].iter())
                 .map(|(a2, b2)| {
                     izip!(a1, a2)
-                        .map(|(a1_i, a2_i)| ((a1_i - a2_i).powi(2)))
+                        .map(|(a1_i, a2_i)| (a1_i - a2_i).powi(2))
                         .sum::<f64>()
                         .sqrt()
                         * izip!(b1, b2)
-                            .map(|(b1_i, b2_i)| ((b1_i - b2_i).powi(2)))
+                            .map(|(b1_i, b2_i)| (b1_i - b2_i).powi(2))
                             .sum::<f64>()
                             .sqrt()
                 })
@@ -37,7 +39,7 @@ pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
                 .iter()
                 .map(|a2| {
                     izip!(a1, a2)
-                        .map(|(a1_i, a2_i)| ((a1_i - a2_i).powi(2)))
+                        .map(|(a1_i, a2_i)| (a1_i - a2_i).powi(2))
                         .sum::<f64>()
                         .sqrt()
                 })
@@ -46,7 +48,7 @@ pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
                 .iter()
                 .map(|b2| {
                     izip!(b1, b2)
-                        .map(|(b1_i, b2_i)| ((b1_i - b2_i).powi(2)))
+                        .map(|(b1_i, b2_i)| (b1_i - b2_i).powi(2))
                         .sum::<f64>()
                         .sqrt()
                 })
@@ -63,7 +65,7 @@ pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
             .iter()
             .map(|a2| {
                 izip!(a1, a2)
-                    .map(|(a1_i, a2_i)| ((a1_i - a2_i).powi(2)))
+                    .map(|(a1_i, a2_i)| (a1_i - a2_i).powi(2))
                     .sum::<f64>()
                     .sqrt()
             })
@@ -72,7 +74,7 @@ pub fn _dist_cov_multi(v_1: &[Vec<f64>], v_2: &[Vec<f64>]) -> f64 {
             .iter()
             .map(|b2| {
                 izip!(b1, b2)
-                    .map(|(b1_i, b2_i)| ((b1_i - b2_i).powi(2)))
+                    .map(|(b1_i, b2_i)| (b1_i - b2_i).powi(2))
                     .sum::<f64>()
                     .sqrt()
             })

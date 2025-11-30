@@ -1,7 +1,13 @@
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Using
+
 use itertools::izip;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::ParallelIterator;
 use rayon::prelude::ParallelSliceMut;
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Definition
 
 #[derive(Clone, Default)]
 struct Iv {
@@ -17,6 +23,9 @@ struct Csum {
     y: f64,
     xy: f64,
 }
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++
+// Implementation
 
 pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: usize) -> f64 {
     // initialize indices
