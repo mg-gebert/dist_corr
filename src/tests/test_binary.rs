@@ -5,8 +5,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use std::time::Instant;
 
-use crate::api::dist_cov_binary;
-use crate::dist_corr_binary::{dist_corr_fast_binary, dist_corr_fast_one_binary};
+use crate::dist_corr_binary::{dist_corr_fast_binary, dist_corr_fast_one_binary, dist_cov_binary};
 use crate::dist_corr_fast::dist_corr_fast;
 use crate::dist_corr_fast::dist_cov_fast;
 use crate::dist_corr_naive::_dist_cov_naive;
