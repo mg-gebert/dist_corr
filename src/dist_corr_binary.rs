@@ -1,11 +1,11 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
+use rayon::join;
 use std::error::Error;
 
 use crate::dist_corr_fast::{dist_var_fast_helper, order_wrt_v2_simple};
 use crate::grand_mean::{grand_means, grand_means_weighted};
-use rayon::join;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
@@ -57,7 +57,7 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
     );
 
     let dist_var_v2 = dist_var_fast_helper(&v2_sorted, &grand_means_v2, length as f64);
-    let dist_var_v1_root = dist_cov_binary_sqrt(v1, v1)?;
+    let dist_var_v1_root = dist_cov_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
         .iter()
@@ -80,21 +80,18 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
     )
 }
 
-pub fn dist_cov_binary_sqrt(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let length = v1.len() as f64;
-
-    let (v1_sum, v2_sum, v1_v2_sum) = v1.iter().zip(v2.iter()).fold(
-        (0.0, 0.0, 0.0),
-        |(v1_sum, v2_sum, v1_v2_sum), (&v1_i, &v2_i)| {
-            (
-                v1_sum + (2.0 * v1_i - 1.0),
-                v2_sum + (2.0 * v2_i - 1.0),
-                v1_v2_sum + (2.0 * v1_i - 1.0) * (2.0 * v2_i - 1.0),
-            )
+pub fn dist_cov_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+    let (n00, n01, n10, n11) = v1.iter().zip(v2.iter()).fold(
+        (0.0, 0.0, 0.0, 0.0),
+        |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
+            (0.0, 0.0) => (n00 + 1.0, n01, n10, n11),
+            (0.0, _) => (n00, n01 + 1.0, n10, n11),
+            (_, 0.0) => (n00, n01, n10 + 1.0, n11),
+            (_, _) => (n00, n01, n10, n11 + 1.0),
         },
     );
 
-    Ok((v1_v2_sum - v1_sum * v2_sum / length).abs() / (2.0 * length))
+    Ok((2.0 * (n11 * n00 - n10 * n01) / (v1.len() as f64).powi(2)).powi(2))
 }
 
 /// v1 should be binary

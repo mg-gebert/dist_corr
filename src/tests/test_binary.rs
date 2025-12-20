@@ -5,10 +5,10 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use std::time::Instant;
 
-use crate::dist_corr_binary::{
-    dist_corr_fast_binary, dist_corr_fast_one_binary, dist_cov_binary_sqrt,
-};
+use crate::api::dist_cov_binary;
+use crate::dist_corr_binary::{dist_corr_fast_binary, dist_corr_fast_one_binary};
 use crate::dist_corr_fast::dist_corr_fast;
+use crate::dist_corr_fast::dist_cov_fast;
 use crate::dist_corr_naive::_dist_cov_naive;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -36,9 +36,8 @@ fn simple_binary() {
     println!("Dist corr: {:?}", dist_corr);
     println!("Dist corr naive: {:?}", dist_corr_naiv);
 
-    let dist_corr_binary = (dist_cov_binary_sqrt(&v1, &v2).unwrap()
-        / (dist_cov_binary_sqrt(&v1, &v1).unwrap() * dist_cov_binary_sqrt(&v2, &v2).unwrap())
-            .sqrt())
+    let dist_corr_binary = (dist_cov_binary(&v1, &v2).unwrap()
+        / (dist_cov_binary(&v1, &v1).unwrap() * dist_cov_binary(&v2, &v2).unwrap()).sqrt())
     .sqrt();
     println!("Dist corr binary: {:?}", dist_corr_binary);
 }
@@ -67,9 +66,8 @@ fn medium_binary() {
     println!("Dist corr: {:?}", dist_corr);
 
     let tick = Instant::now();
-    let dist_corr_binary = dist_cov_binary_sqrt(&v1, &v2).unwrap()
-        / (dist_cov_binary_sqrt(&v1, &v1).unwrap() * dist_cov_binary_sqrt(&v2, &v2).unwrap())
-            .sqrt();
+    let dist_corr_binary = dist_cov_binary(&v1, &v2).unwrap()
+        / (dist_cov_binary(&v1, &v1).unwrap() * dist_cov_binary(&v2, &v2).unwrap()).sqrt();
 
     println!("Time dist corr binary {}s", tick.elapsed().as_secs_f32());
     println!("Dist corr binary: {:?}", dist_corr_binary);
@@ -134,9 +132,8 @@ fn medium_one_binary() {
 
 #[test]
 fn hard_one_binary() {
-    let sample_size = 100000;
+    let sample_size = 1000;
     let mut rng_1 = ChaCha8Rng::seed_from_u64(134);
-    let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
     println!("Length of vectors: {:?}", sample_size);
 
@@ -145,9 +142,10 @@ fn hard_one_binary() {
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
-    let v2: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_2.gen_range(-1.0..1.0))
-        .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
+    let v2: Vec<f64> = v1
+        .iter()
+        .enumerate()
+        .map(|(i, x)| if i % 2 == 0 { *x } else { 0.0 })
         .collect();
 
     println!("-------------------------");
@@ -170,4 +168,11 @@ fn hard_one_binary() {
     let dist_corr_binary = dist_corr_fast_binary(&v1, &v2);
     println!("Result: {:?}", dist_corr_binary);
     println!("Time {}s", tick.elapsed().as_secs_f32());
+
+    let dist_cov = dist_cov_fast(&v1, &v2);
+    println!("dist_cov: {:?}", dist_cov);
+
+    let dist_cov_binary = dist_cov_binary(&v1, &v2);
+
+    println!("dist_cov_binary: {:?}", dist_cov_binary);
 }

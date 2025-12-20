@@ -3,10 +3,9 @@
 
 use std::error::Error;
 
-use crate::dist_corr_binary::dist_cov_one_binary as dist_cov_one_binary_other;
-use crate::dist_corr_binary::{
-    dist_corr_fast_binary, dist_corr_fast_one_binary, dist_cov_binary_sqrt,
-};
+use crate::dist_corr_binary::dist_cov_binary as dist_cov_binary_inner;
+use crate::dist_corr_binary::dist_cov_one_binary as dist_cov_one_binary_inner;
+use crate::dist_corr_binary::{dist_corr_fast_binary, dist_corr_fast_one_binary};
 use crate::dist_corr_fast::{dist_corr_fast, dist_cov_fast, dist_var_fast};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -253,12 +252,12 @@ impl DistCovariance {
     }
 }
 
-fn dist_cov_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    Ok(dist_cov_binary_sqrt(v1, v2)?.powi(2))
+pub(crate) fn dist_cov_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+    dist_cov_binary_inner(v1, v2)
 }
 
 fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    dist_cov_one_binary_other(v1, v2)
+    dist_cov_one_binary_inner(v1, v2)
 }
 
 /// Computes the distance variance of a single vector.
