@@ -24,7 +24,7 @@ pub fn dist_corr_fast_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
     let numerator: f64 = n11 * n00 - n10 * n01;
     let denominator: f64 = ((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10)).sqrt();
 
-    Ok(-numerator / denominator)
+    Ok(numerator / denominator)
 }
 
 /// v1 should be binary
@@ -57,7 +57,7 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
     );
 
     let dist_var_v2 = dist_var_fast_helper(&v2_sorted, &grand_means_v2, length as f64);
-    let dist_var_v1_root = dist_cov_binary(v1, v1)?;
+    let dist_var_v1 = dist_cov_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
         .iter()
@@ -75,8 +75,8 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
     Ok(
         ((-0.5 * v1_dist_v1 / (length as f64) + v1_1 * v1_dist_1 / (length.pow(2) as f64)
             - 0.5 * v1_1.powi(2) * dist_1 / (length.pow(3) as f64))
-            / (dist_var_v2.sqrt() * dist_var_v1_root))
-            .sqrt(),
+            / (dist_var_v2 * dist_var_v1).sqrt())
+        .sqrt(),
     )
 }
 
