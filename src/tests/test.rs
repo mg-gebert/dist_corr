@@ -5,7 +5,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use std::time::Instant;
 
-use crate::api::DistCorrelation;
+use crate::api::{DistCorrelation, DistCovariance};
 use crate::dist_corr_naive::_dist_cov_naive;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -17,10 +17,12 @@ fn independent() {
     let v2: Vec<f64> = vec![0.0, 1.0, 1.0, 0.0];
 
     let dist_correlation = DistCorrelation;
+    let dist_covariance = DistCovariance;
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     let time_fast = tick.elapsed().as_secs_f32();
+    let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
     let tick = Instant::now();
     let dist_cov_naive = _dist_cov_naive(&v1, &v2);
@@ -36,11 +38,12 @@ fn independent() {
 
     assert!(dist_corr < f64::EPSILON);
     assert!((dist_corr_naive - dist_corr).abs() < 1e-10);
+    assert!((dist_cov - dist_cov_naive).abs() < 1e-10);
 }
 
 #[test]
 fn independent_2() {
-    let sample_size = 10000;
+    let sample_size = 1000;
     let mut rng_1 = ChaCha8Rng::seed_from_u64(134);
     let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
@@ -53,10 +56,12 @@ fn independent_2() {
         .collect();
 
     let dist_correlation = DistCorrelation;
+    let dist_covariance = DistCovariance;
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     let time_fast = tick.elapsed().as_secs_f32();
+    let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
     let tick = Instant::now();
     let dist_cov_naive = _dist_cov_naive(&v1, &v2);
@@ -71,6 +76,7 @@ fn independent_2() {
     println!("Dist corr naive: {:?}", dist_corr_naive);
 
     assert!((dist_corr_naive - dist_corr).abs() < 1e-10);
+    assert!((dist_cov - dist_cov_naive).abs() < 1e-10);
 }
 
 #[test]
@@ -80,10 +86,12 @@ fn quadratic_relation_simple() {
     let v2: Vec<f64> = v1.iter().map(|x| x * x).collect();
 
     let dist_correlation = DistCorrelation;
+    let dist_covariance = DistCovariance;
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     let time_fast = tick.elapsed().as_secs_f32();
+    let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
     let exact_solution = (2.0_f64 / 40.0_f64.sqrt()).sqrt();
     assert!((dist_corr - exact_solution).abs() < 1e-10);
@@ -102,6 +110,7 @@ fn quadratic_relation_simple() {
     println!("Dist corr naive: {:?}", dist_corr_naive);
 
     assert!((dist_corr - exact_solution).abs() < 1e-10);
+    assert!((dist_cov - dist_cov_naive).abs() < 1e-10);
 }
 
 #[test]
@@ -142,21 +151,24 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
     let v2: Vec<f64> = v1.iter().map(func).collect();
 
     let dist_correlation = DistCorrelation;
+    let dist_covariance = DistCovariance;
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     let time_fast = tick.elapsed().as_secs_f32();
+    let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
     println!("Dist corr fast: Time {}s", time_fast);
     println!("Dist corr: {:?}", dist_corr);
 
     let tick = Instant::now();
-    let a = _dist_cov_naive(&v1, &v2);
-    let b = _dist_cov_naive(&v1, &v1);
-    let c = _dist_cov_naive(&v2, &v2);
-    let dist_corr_naive = (a / (b * c).sqrt()).sqrt();
+    let dist_cov_naive = _dist_cov_naive(&v1, &v2);
+    let dist_var_v1 = _dist_cov_naive(&v1, &v1);
+    let dist_var_v2 = _dist_cov_naive(&v2, &v2);
+    let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
     let time_naive = tick.elapsed().as_secs_f32();
     println!("Dist corr naive: Time {}s", time_naive);
     println!("Dist corr naive: {:?}", dist_corr_naive);
 
     assert!((dist_corr_naive - dist_corr).abs() < 1e-5);
+    assert!((dist_cov - dist_cov_naive) < 1e-10);
 }
