@@ -24,7 +24,7 @@ pub fn dist_corr_fast_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
     let numerator: f64 = n11 * n00 - n10 * n01;
     let denominator: f64 = ((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10)).sqrt();
 
-    Ok(numerator / denominator)
+    Ok((numerator / denominator).abs())
 }
 
 /// v1 should be binary
