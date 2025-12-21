@@ -157,12 +157,13 @@ impl DistCorrelation {
         if v2_binary && !v2.iter().all(|&x| x == 0.0 || x == 1.0) {
             return Err("v2 must be binary (only 0.0 or 1.0)".into());
         }
-        match (v1_binary, v2_binary) {
+        let result = match (v1_binary, v2_binary) {
             (true, true) => dist_corr_fast_binary(v1, v2),
             (true, false) => dist_corr_fast_one_binary(v1, v2),
             (false, true) => dist_corr_fast_one_binary(v2, v1),
             (false, false) => dist_corr_fast(v1, v2),
-        }
+        };
+        result.map(|dist_corr| dist_corr.clamp(0.0, 1.0))
     }
 }
 
