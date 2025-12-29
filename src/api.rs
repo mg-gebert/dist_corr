@@ -251,38 +251,29 @@ impl DistCovariance {
             (false, false) => dist_cov_fast(v1, v2),
         }
     }
-}
 
-/// Computes the distance variance of a single vector.
-///
-/// Distance variance is a measure of the variability of a random variable.
-///
-/// # Arguments
-///
-/// * `v` - A slice of `f64` values representing the input data vector.
-///
-/// # Returns
-///
-/// A `f64` value representing the distance variance of the input vector.
-/// The result is always non-negative:
-/// - `0.0` indicates that all points in the vector are identical.
-/// - Larger values indicate greater spread in the data.
-///
-/// # Panics
-///
-/// This function will panic if:
-/// - The input vector `v` is empty.
-///
-/// # Examples
-///
-/// ```
-/// use dist_corr::dist_var;
-///
-/// let v = [1.0, 0.0, -1.0];
-/// let var = dist_var(&v);
-///
-/// println!("Distance variance: {:?}", var);
-/// ```
-pub fn dist_var(v: &[f64]) -> f64 {
-    dist_var_fast(v)
+    /// Computes the distance variance of a single vector.
+    ///
+    /// Distance variance is a measure of the variability of a random variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `v` - A slice of `f64` values representing the input data vector.
+    ///
+    /// # Returns
+    ///
+    /// A `f64` value representing the distance variance of the input vector.
+    /// The result is always non-negative:
+    /// - `0.0` indicates that all points in the vector are identical.
+    /// - Larger values indicate greater spread in the data.
+    ///
+    /// This mathod is faster than calling `DistCovariance::compute(v,v)`.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if:
+    /// - The input vector `v` is empty.
+    pub fn compute_var(v: &[f64]) -> Result<f64, Box<dyn Error>> {
+        Ok(dist_var_fast(v))
+    }
 }
