@@ -81,8 +81,6 @@ pub fn dist_cov_fast(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
 pub fn dist_var_fast(v: &[f64]) -> f64 {
     let v_len = v.len();
 
-    assert!(v_len > 0, "v must not be empty.");
-
     // sort v
     let mut v_sorted = v.to_vec();
     v_sorted.par_sort_unstable_by(|v_i, v_j| v_i.partial_cmp(v_j).unwrap());

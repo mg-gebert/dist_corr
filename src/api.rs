@@ -12,64 +12,10 @@ use crate::dist_corr_fast::{dist_corr_fast, dist_cov_fast, dist_var_fast};
 // API Calls
 
 /// Instance for distance correlation computation.
-///
-/// # Examples
-///
-/// Basic construction and compute (default: non-binary):
-///
-/// ```
-/// use dist_corr::DistCorrelation;
-///
-/// let v1 = vec![1.0, 2.0, 3.0];
-/// let v2 = vec![2.0, 4.0, 6.0];
-/// let dist_corr = DistCorrelation;
-/// let result = dist_corr.compute(&v1, &v2);
-/// println!("{:?}", result);
-/// ```
-///
-/// --------------------------------------
-/// For binary vectors:
-///
-/// ```
-/// use dist_corr::DistCorrelation;
-///
-/// let v1 = vec![0.0, 1.0, 0.0];
-/// let v2 = vec![1.0, 0.0, 1.0];
-/// let dist_corr = DistCorrelation;
-/// let result = dist_corr.compute_binary(&v1, &v2, true, true);
-/// println!("{:?}", result);
-/// ```
 #[derive(Clone, Debug)]
 pub struct DistCorrelation;
 
 /// Instance for distance covariance computation.
-///
-/// # Examples
-///
-/// Basic construction and compute (default: non-binary):
-///
-/// ```
-/// use dist_corr::DistCovariance;
-///
-/// let v1 = vec![1.0, 2.0, 3.0];
-/// let v2 = vec![2.0, 4.0, 6.0];
-/// let dist_cov = DistCovariance;
-/// let result = dist_cov.compute(&v1, &v2);
-/// println!("{:?}", result);
-/// ```
-///
-/// --------------------------------------
-/// For binary vectors:
-///
-/// ```
-/// use dist_corr::DistCovariance;
-///
-/// let v1 = vec![0.0, 1.0, 0.0];
-/// let v2 = vec![1.0, 0.0, 1.0];
-/// let dist_cov = DistCovariance;
-/// let result = dist_cov.compute_binary(&v1, &v2, true, true);
-/// println!("{:?}", result);
-/// ```
 #[derive(Clone, Debug)]
 pub struct DistCovariance;
 
@@ -91,9 +37,9 @@ impl DistCorrelation {
     /// - `0.0` indicates no dependence.
     /// - `1.0` indicates perfect linear dependence.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The function will panic if:
+    /// The function will return an error if:
     /// - The lengths of `v1` and `v2` do not match.
     /// - Either of the vectors is empty.
     ///
@@ -102,26 +48,26 @@ impl DistCorrelation {
     /// ```
     /// use dist_corr::DistCorrelation;
     ///
-    /// let v1 = vec![2.0, 1.0, -1.1];
-    /// let v2 = vec![1.0, 0.3, 1.4];
+    /// let v1 = vec![1.0, 2.0, 3.0];
+    /// let v2 = vec![2.0, 4.0, 6.0];
     ///
     /// let dist_corr = DistCorrelation;
-    /// let result = dist_corr.compute(&v1, &v2);
+    /// let result = dist_corr.compute(&v1, &v2).unwrap();
     ///
-    /// println!("{:?}", result);
+    /// assert_eq!(result, 1.0);
     /// ```
     pub fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
         self.compute_binary(v1, v2, false, false)
     }
 
-    /// Computes the distance correlation between two vectors where at least one is binary, i.e. (0-1) valued.
+    /// Computes the distance correlation between two vectors where at least one is binary, i.e. 0-1-valued.
     ///
     /// # Arguments
     ///
-    /// * `v1` - A float valued slice representing the first data vector.
-    /// * `v2` - A float valued slice with values either 0.0 or 1.0 representing the second data vector.
-    /// * `v1_binary` - A flag indicating if v1 should be a binary vector.
-    /// * `v2_binary` - A flag indicating if v2 should be a binary vector.
+    /// * `v1` - A slice of `f64` values representing the first data vector.
+    /// * `v2` - A slice of `f64` values representing the second data vector.
+    /// * `v1_binary` - A flag indicating if v1 is a binary vector, i.e. with values either 0.0 or 1.0.
+    /// * `v2_binary` - A flag indicating if v2 is a binary vector, i.e. with values either 0.0 or 1.0.
     ///
     /// # Returns
     ///
@@ -130,12 +76,24 @@ impl DistCorrelation {
     /// - `0.0` indicates no dependence.
     /// - `1.0` indicates perfect linear dependence.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The function will panic if:
-    /// - `v1` or `v2` is not 0.0 - 1.0 valued as indicated by v1_binary and v2_binary
+    /// The function will return an error if:
+    /// - `v1` or `v2` is not 0-1-valued as indicated by v1_binary and v2_binary
     /// - The lengths of `v1` and `v2` do not match.
     /// - Either of the vectors is empty.
+    ///
+    /// ```
+    /// use dist_corr::DistCorrelation;
+    ///
+    /// let v1 = vec![0.0, 1.0, 0.0, 1.0];
+    /// let v2 = vec![0.0, 1.0, 1.0, 0.0];
+    ///
+    /// let dist_corr = DistCorrelation;
+    /// let result = dist_corr.compute_binary(&v1, &v2, true, true).unwrap();
+    ///
+    /// assert_eq!(result, 0.0);
+    /// ```
     pub fn compute_binary(
         &self,
         v1: &[f64],
@@ -179,9 +137,9 @@ impl DistCovariance {
     ///
     /// Returns a `f64` representing the distance covariance between the two input vectors.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The function will panic if:
+    /// The function will return an error if:
     /// - The lengths of `v1` and `v2` do not match.
     /// - Either of the vectors is empty.
     ///
@@ -190,38 +148,49 @@ impl DistCovariance {
     /// ```
     /// use dist_corr::DistCovariance;
     ///
-    /// let v1 = vec![1.0, 2.0, 3.0];
-    /// let v2 = vec![2.0, 4.0, 6.0];
+    /// let v1 = vec![1.0, 2.0];
+    /// let v2 = vec![2.0, 4.0];
+    ///
     /// let dist_cov = DistCovariance;
-    /// let result = dist_cov.compute(&v1, &v2);
-    /// println!("{:?}", result);
+    /// let result = dist_cov.compute(&v1, &v2).unwrap();
+    ///
+    /// assert_eq!(result, 0.5);
     /// ```
     pub fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
         self.compute_binary(v1, v2, false, false)
     }
 
-    /// Computes the distance covariance between two vectors where at least one is binary, i.e. (0-1) valued.
+    /// Computes the distance covariance between two vectors where at least one is binary, i.e. 0-1-valued.
     ///
     /// # Arguments
     ///
-    /// * `v1` - A float valued slice representing the first data vector.
-    /// * `v2` - A float valued slice with values either 0.0 or 1.0 representing the second data vector.
-    /// * `v1_binary` - A flag indicating if v1 should be a binary vector.
-    /// * `v2_binary` - A flag indicating if v2 should be a binary vector.
+    /// * `v1` - A slice of `f64` values representing the first data vector.
+    /// * `v2` - A slice of `f64` values representing the second data vector.
+    /// * `v1_binary` - A flag indicating if v1 is a binary vector, i.e. with values either 0.0 or 1.0.
+    /// * `v2_binary` - A flag indicating if v2 is a binary vector, i.e. with values either 0.0 or 1.0.
     ///
     /// # Returns
     ///
-    /// Returns a `f64` representing the distance covariance between the two binary input vectors. The value will
-    /// be in the range `[0.0, 1.0]`, where:
-    /// - `0.0` indicates no dependence.
-    /// - `1.0` indicates perfect linear dependence.
+    /// Returns a `f64` representing the distance covariance between the two binary input vectors.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The function will panic if:
-    /// - `v1` or `v2` is not 0.0 - 1.0 valued as indicated by v1_binary and v2_binary
+    /// The function will return an error if:
+    /// - `v1` or `v2` is not 0-1-valued as indicated by v1_binary and v2_binary
     /// - The lengths of `v1` and `v2` do not match.
     /// - Either of the vectors is empty.
+    ///
+    /// ```
+    /// use dist_corr::DistCovariance;
+    ///
+    /// let v1 = vec![0.0, 1.0, 0.0, 1.0];
+    /// let v2 = vec![0.0, 1.0, 1.0, 0.0];
+    ///
+    /// let dist_cov = DistCovariance;
+    /// let result = dist_cov.compute_binary(&v1, &v2, true, true).unwrap();
+    ///
+    /// assert_eq!(result, 0.0);
+    /// ```
     pub fn compute_binary(
         &self,
         v1: &[f64],
@@ -254,8 +223,6 @@ impl DistCovariance {
 
     /// Computes the distance variance of a single vector.
     ///
-    /// Distance variance is a measure of the variability of a random variable.
-    ///
     /// # Arguments
     ///
     /// * `v` - A slice of `f64` values representing the input data vector.
@@ -265,15 +232,29 @@ impl DistCovariance {
     /// A `f64` value representing the distance variance of the input vector.
     /// The result is always non-negative:
     /// - `0.0` indicates that all points in the vector are identical.
-    /// - Larger values indicate greater spread in the data.
     ///
-    /// This mathod is faster than calling `DistCovariance::compute(v,v)`.
+    /// This method is faster than calling `DistCovariance::compute(v,v)` if `v` is non-binary.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function will panic if:
+    /// The function will return an error if:
     /// - The input vector `v` is empty.
-    pub fn compute_var(v: &[f64]) -> Result<f64, Box<dyn Error>> {
+    ///
+    /// ```
+    /// use dist_corr::DistCovariance;
+    ///
+    /// let v = vec![1.0, 1.0, 1.0];
+    ///
+    /// let dist_cov = DistCovariance;
+    /// let result = dist_cov.compute_var(&v).unwrap();
+    ///
+    /// assert_eq!(result, 0.0);
+    /// ```
+    pub fn compute_var(&self, v: &[f64]) -> Result<f64, Box<dyn Error>> {
+        if v.is_empty() {
+            return Err("v must not be empty".into());
+        }
+
         Ok(dist_var_fast(v))
     }
 }
