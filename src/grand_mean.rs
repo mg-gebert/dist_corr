@@ -6,7 +6,7 @@ use itertools::izip;
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
-/// out must be all 0s
+/// out must be all 0s as input
 pub fn grand_means(v: &[f64], order: Option<&[usize]>, out: &mut [f64], len: usize) {
     let mut current_sum_ascending = 0.0;
     let mut current_sum_descending = 0.0;
@@ -35,6 +35,8 @@ pub fn grand_means(v: &[f64], order: Option<&[usize]>, out: &mut [f64], len: usi
     out.iter_mut().for_each(|x| *x /= len as f64);
 }
 
+/// v must be ordered inceasingly
+/// out must be all 0s as input
 pub fn grand_means_weighted(v: &[f64], w: &[f64], out: &mut [f64], len: usize) {
     let mut current_sum_ascending = 0.0;
     let mut current_sum_descending = 0.0;

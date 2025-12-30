@@ -2,11 +2,11 @@
 // Using
 
 use rayon::join;
-use rayon::prelude::*;
 use std::error::Error;
 
 use crate::dist_corr::dist_var_helper;
 use crate::grand_mean::{grand_means, grand_means_weighted};
+use crate::ordering::Ordering;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
@@ -34,34 +34,29 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
     let length = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
-    let (mut v1_transformed, v2_sorted) = order_wrt_v2_simple(v1, v2);
+    let Ordering {
+        mut v1_per, v2_ord, ..
+    } = Ordering::order_wrt_v2(v1, v2, false);
 
     // initialize grand means
     let mut grand_means_v2 = vec![0.0; length];
     let mut grand_means_v2_weighted = vec![0.0; length];
 
-    v1_transformed
-        .iter_mut()
-        .for_each(|vi| *vi = 2.0 * *vi - 1.0);
+    v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
     let ((), ()) = join(
         || {
-            grand_means(&v2_sorted, None, &mut grand_means_v2, length);
+            grand_means(&v2_ord, None, &mut grand_means_v2, length);
         },
         || {
-            grand_means_weighted(
-                &v2_sorted,
-                &v1_transformed,
-                &mut grand_means_v2_weighted,
-                length,
-            );
+            grand_means_weighted(&v2_ord, &v1_per, &mut grand_means_v2_weighted, length);
         },
     );
 
-    let dist_var_v2 = dist_var_helper(&v2_sorted, &grand_means_v2, length as f64);
+    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, length as f64);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
-    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
+    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_per
         .iter()
         .zip(grand_means_v2_weighted.iter())
         .zip(grand_means_v2.iter())
@@ -102,43 +97,23 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
     let length = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
-    let (mut v1_transformed, v2_sorted) = order_wrt_v2_simple(v1, v2);
+    let Ordering {
+        mut v1_per, v2_ord, ..
+    } = Ordering::order_wrt_v2(v1, v2, false);
 
-    //let tick = Instant::now();
-    // initialize grand means
-    //let mut grand_means_v2 = vec![0.0; length];
     let mut grand_means_v2_weighted = vec![0.0; length];
 
-    v1_transformed
-        .iter_mut()
-        .for_each(|vi| *vi = 2.0 * *vi - 1.0);
-    //println!("Initialising took {}s", tick.elapsed().as_secs_f32());
+    v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
-    let v1_transformed_sum = v1_transformed.iter().sum::<f64>() / length as f64;
-    v1_transformed
-        .iter_mut()
-        .for_each(|vi| *vi -= v1_transformed_sum);
+    let v1_transformed_sum = v1_per.iter().sum::<f64>() / length as f64;
+    v1_per.iter_mut().for_each(|vi| *vi -= v1_transformed_sum);
 
-    grand_means_weighted(
-        &v2_sorted,
-        &v1_transformed,
-        &mut grand_means_v2_weighted,
-        length,
-    );
+    grand_means_weighted(&v2_ord, &v1_per, &mut grand_means_v2_weighted, length);
 
-    Ok(-v1_transformed
+    Ok(-v1_per
         .iter()
         .zip(grand_means_v2_weighted)
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
         / (2.0 * length as f64))
-}
-
-fn order_wrt_v2_simple(v1: &[f64], v2: &[f64]) -> (Vec<f64>, Vec<f64>) {
-    // Create a sorted list of indices based on v2
-    let mut indices: Vec<usize> = (0..v2.len()).collect();
-    indices.par_sort_unstable_by(|&i, &j| v2[i].partial_cmp(&v2[j]).unwrap());
-
-    // Map sorted indices to values in v1 and v2
-    indices.iter().map(|&i| (v1[i], v2[i])).unzip()
 }
