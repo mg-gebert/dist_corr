@@ -2,15 +2,17 @@
 // Using
 
 use rayon::join;
+use rayon::prelude::*;
 use std::error::Error;
 
-use crate::dist_corr_fast::{dist_var_fast_helper, order_wrt_v2_simple};
+use crate::dist_corr::dist_var_helper;
 use crate::grand_mean::{grand_means, grand_means_weighted};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
-pub fn dist_corr_fast_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+// v1 and v2 must be 0-1-valued
+pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let (n00, n01, n10, n11) = v1.iter().zip(v2.iter()).fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
@@ -27,8 +29,8 @@ pub fn dist_corr_fast_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
     Ok((numerator / denominator).abs())
 }
 
-/// v1 should be binary
-pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+/// v1 and v2 must be 0-1-valued
+pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let length = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
@@ -56,8 +58,8 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
         },
     );
 
-    let dist_var_v2 = dist_var_fast_helper(&v2_sorted, &grand_means_v2, length as f64);
-    let dist_var_v1 = dist_cov_binary(v1, v1)?;
+    let dist_var_v2 = dist_var_helper(&v2_sorted, &grand_means_v2, length as f64);
+    let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_transformed
         .iter()
@@ -80,7 +82,8 @@ pub fn dist_corr_fast_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn 
     )
 }
 
-pub fn dist_cov_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+// v1 and v2 must be a 0-1-valued
+pub fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let (n00, n01, n10, n11) = v1.iter().zip(v2.iter()).fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
@@ -94,7 +97,7 @@ pub fn dist_cov_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     Ok((2.0 * (n11 * n00 - n10 * n01) / (v1.len() as f64).powi(2)).powi(2))
 }
 
-/// v1 should be binary
+/// v1 must be 0-1-valued
 pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let length = v1.len();
 
@@ -129,4 +132,13 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
         / (2.0 * length as f64))
+}
+
+fn order_wrt_v2_simple(v1: &[f64], v2: &[f64]) -> (Vec<f64>, Vec<f64>) {
+    // Create a sorted list of indices based on v2
+    let mut indices: Vec<usize> = (0..v2.len()).collect();
+    indices.par_sort_unstable_by(|&i, &j| v2[i].partial_cmp(&v2[j]).unwrap());
+
+    // Map sorted indices to values in v1 and v2
+    indices.iter().map(|&i| (v1[i], v2[i])).unzip()
 }

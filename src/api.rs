@@ -3,10 +3,10 @@
 
 use std::error::Error;
 
-use crate::dist_corr_binary::dist_cov_binary;
+use crate::dist_corr::{dist_corr, dist_cov, dist_var};
+use crate::dist_corr_binary::dist_cov_both_binary;
 use crate::dist_corr_binary::dist_cov_one_binary;
-use crate::dist_corr_binary::{dist_corr_fast_binary, dist_corr_fast_one_binary};
-use crate::dist_corr_fast::{dist_corr_fast, dist_cov_fast, dist_var_fast};
+use crate::dist_corr_binary::{dist_corr_both_binary, dist_corr_one_binary};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // API Calls
@@ -116,10 +116,10 @@ impl DistCorrelation {
             return Err("v2 must be binary (only 0.0 or 1.0)".into());
         }
         let result = match (v1_binary, v2_binary) {
-            (true, true) => dist_corr_fast_binary(v1, v2),
-            (true, false) => dist_corr_fast_one_binary(v1, v2),
-            (false, true) => dist_corr_fast_one_binary(v2, v1),
-            (false, false) => dist_corr_fast(v1, v2),
+            (true, true) => dist_corr_both_binary(v1, v2),
+            (true, false) => dist_corr_one_binary(v1, v2),
+            (false, true) => dist_corr_one_binary(v2, v1),
+            (false, false) => dist_corr(v1, v2),
         };
         result.map(|dist_corr| dist_corr.clamp(0.0, 1.0))
     }
@@ -214,10 +214,10 @@ impl DistCovariance {
         }
 
         match (v1_binary, v2_binary) {
-            (true, true) => dist_cov_binary(v1, v2),
+            (true, true) => dist_cov_both_binary(v1, v2),
             (true, false) => dist_cov_one_binary(v1, v2),
             (false, true) => dist_cov_one_binary(v2, v1),
-            (false, false) => dist_cov_fast(v1, v2),
+            (false, false) => dist_cov(v1, v2),
         }
     }
 
@@ -255,6 +255,6 @@ impl DistCovariance {
             return Err("v must not be empty".into());
         }
 
-        Ok(dist_var_fast(v))
+        Ok(dist_var(v))
     }
 }

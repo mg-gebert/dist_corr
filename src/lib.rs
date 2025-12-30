@@ -33,8 +33,8 @@
 // Modules
 
 pub mod api;
+pub(crate) mod dist_corr;
 pub(crate) mod dist_corr_binary;
-pub(crate) mod dist_corr_fast;
 pub(crate) mod dist_corr_multi;
 pub(crate) mod dist_corr_naive;
 pub(crate) mod frob_inner_product;
