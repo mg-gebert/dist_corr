@@ -4,9 +4,9 @@
 use std::error::Error;
 
 use crate::dist_corr::{dist_corr, dist_cov, dist_var};
-use crate::dist_corr_binary::dist_cov_both_binary;
-use crate::dist_corr_binary::dist_cov_one_binary;
-use crate::dist_corr_binary::{dist_corr_both_binary, dist_corr_one_binary};
+use crate::dist_corr_binary::{
+    dist_corr_both_binary, dist_corr_one_binary, dist_cov_both_binary, dist_cov_one_binary,
+};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // API Calls

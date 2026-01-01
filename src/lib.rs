@@ -12,22 +12,26 @@
 //! let dist_corr = DistCorrelation;
 //! let result = dist_corr.compute(&v1, &v2);
 //! println!("{:?}", result);
-//! ```
 //!
-//! # Quick example binary vectors
-//!
-//! For one or both vectors being binary, i.e. 0-1 valued, a faster algorithm is implemented.
-//!
-//! ```
-//! use dist_corr::DistCorrelation;
-//!
+//! // for one vector being binary, i.e. 0-1 valued, a faster algorithm is implemented.
 //! let v1 = vec![1.0, 1.0, 0.0];
 //! let v2 = vec![2.0, 4.0, 6.0];
 //! let dist_corr = DistCorrelation;
 //! let result = dist_corr.compute_binary(&v1, &v2, true, false);
 //! println!("{:?}", result);
+//!
+//! // for both vectors being binary, an even faster algorithm is implemented
+//! let v1 = vec![1.0, 1.0, 0.0, 0.0];
+//! let v2 = vec![1.0, 0.0, 1.0, 0.0];
+//! let dist_corr = DistCorrelation;
+//! let result = dist_corr.compute_binary(&v1, &v2, true, true);
+//! println!("{:?}", result);
 //! ```
 //!
+//! # Theory
+//!
+//! For
+//! See the [distance correlation](dist_corr_fast_short.pdf) for more details.
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Modules

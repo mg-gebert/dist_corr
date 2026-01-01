@@ -33,7 +33,7 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
     let mut idxs_after: Vec<usize> = vec![0; len];
 
     let num_threads = rayon::current_num_threads();
-    dbg!("Available threads in Rayon: {}", num_threads);
+    //dbg!(("Number of threads:", num_threads));
 
     let chunk_size = (len as f64 / num_threads as f64).ceil() as usize;
 
