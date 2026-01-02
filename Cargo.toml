@@ -16,5 +16,11 @@ rayon = "=1.10.0"
 # Features
 
 [[bench]]
+name = "dist_corr_speed_binary_test"
+path = "benches/dist_corr_speed_binary_test.rs"
+harness = false
+
+[[bench]]
 name = "dist_corr_speed_test"
+path = "benches/dist_corr_speed_test.rs"
 harness = false
