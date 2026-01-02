@@ -182,6 +182,9 @@ fn hard_one_binary() {
     let dist_corr_one_binary = dist_correlation
         .compute_binary(&v1, &v2, true, false)
         .unwrap();
+    let dist_corr_one_binary_flipped = dist_correlation
+        .compute_binary(&v2, &v1, false, true)
+        .unwrap();
     println!("Result: {:?}", dist_corr_one_binary);
     println!("Time {}s", tick.elapsed().as_secs_f32());
 
@@ -194,6 +197,7 @@ fn hard_one_binary() {
     println!("Result: {:?}", dist_corr_binary);
     println!("Time {}s", tick.elapsed().as_secs_f32());
 
+    assert!((dist_corr_one_binary_flipped - dist_corr_one_binary).abs() < 1e-20);
     assert!((dist_corr - dist_corr_one_binary).abs() < 1e-10);
     assert!((dist_corr_one_binary - dist_corr_binary).abs() < 1e-10);
 
