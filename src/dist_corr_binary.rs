@@ -5,7 +5,7 @@ use rayon::join;
 use std::error::Error;
 
 use crate::dist_corr::dist_var_helper;
-use crate::grand_mean::{grand_means, grand_means_weighted};
+use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,7 +29,7 @@ pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
     Ok((numerator / denominator).abs())
 }
 
-/// v1 and v2 must be 0-1-valued
+/// v1 must be 0-1-valued
 pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let length = v1.len();
 
@@ -39,27 +39,27 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
     } = Ordering::order_wrt_v2(v1, v2, false);
 
     // initialize grand means
-    let mut grand_means_v2 = vec![0.0; length];
-    let mut grand_means_v2_weighted = vec![0.0; length];
+    let mut grand_means_v2 = GrandMeans::new(&v2_ord);
+    let mut grand_means_v2_weighted = GrandMeans::new(&v2_ord);
 
     v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
     let ((), ()) = join(
         || {
-            grand_means(&v2_ord, None, &mut grand_means_v2, length);
+            grand_means_v2.compute_ordered();
         },
         || {
-            grand_means_weighted(&v2_ord, &v1_per, &mut grand_means_v2_weighted, length);
+            grand_means_v2_weighted.compute_ordered_weighted(&v1_per);
         },
     );
 
-    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, length as f64);
+    let dist_var_v2 = dist_var_helper(&v2_ord, grand_means_v2.get_means(), length as f64);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_per
         .iter()
-        .zip(grand_means_v2_weighted.iter())
-        .zip(grand_means_v2.iter())
+        .zip(grand_means_v2_weighted.get_means().iter())
+        .zip(grand_means_v2.get_means().iter())
         .fold((0.0, 0.0, 0.0, 0.0), |acc, ((vi, vwi_weighted), vwi)| {
             (
                 acc.0 + vi * vwi_weighted,
@@ -101,18 +101,18 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
         mut v1_per, v2_ord, ..
     } = Ordering::order_wrt_v2(v1, v2, false);
 
-    let mut grand_means_v2_weighted = vec![0.0; length];
+    let mut grand_means_v2_weighted = GrandMeans::new(&v2_ord);
 
     v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
     let v1_transformed_sum = v1_per.iter().sum::<f64>() / length as f64;
     v1_per.iter_mut().for_each(|vi| *vi -= v1_transformed_sum);
 
-    grand_means_weighted(&v2_ord, &v1_per, &mut grand_means_v2_weighted, length);
+    grand_means_v2_weighted.compute_ordered_weighted(&v1_per);
 
     Ok(-v1_per
         .iter()
-        .zip(grand_means_v2_weighted)
+        .zip(grand_means_v2_weighted.get_means())
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
         / (2.0 * length as f64))
