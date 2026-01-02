@@ -27,7 +27,7 @@ struct Csum {
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
-pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: usize) -> f64 {
+pub fn compute_frobenius_inner_product(v1: &[f64], v2: &[f64], len: usize) -> f64 {
     // initialize indices
     let mut idxs_before: Vec<usize> = (0..len).collect();
     let mut idxs_after: Vec<usize> = vec![0; len];
@@ -49,8 +49,8 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
         .for_each(
             |(j, (((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk))| {
                 perform_loop(
-                    samples0,
-                    samples1,
+                    v1,
+                    v2,
                     idxs_before_chunk,
                     idxs_after_chunk,
                     ivs_chunk.len(),
@@ -63,8 +63,8 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
         );
 
     perform_loop(
-        samples0,
-        samples1,
+        v1,
+        v2,
         &mut idxs_before,
         &mut idxs_after,
         len,
@@ -76,7 +76,7 @@ pub fn compute_frobenius_inner_product(samples0: &[f64], samples1: &[f64], len: 
 
     let cov_term = len as f64 * csums[len].xy - csums[len].x * csums[len].y;
 
-    let sum = izip!(ivs, samples0, samples1)
+    let sum = izip!(ivs, v1, v2)
         .map(|(iv, s0, s1)| 4.0 * (iv.num as f64 * s0 * s1 + iv.xy - iv.x * s0 - iv.y * s1))
         .sum::<f64>();
 

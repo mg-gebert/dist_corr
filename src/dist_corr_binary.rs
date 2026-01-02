@@ -31,7 +31,7 @@ pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
 
 /// v1 must be 0-1-valued
 pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let length = v1.len();
+    let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
     let Ordering {
@@ -53,7 +53,7 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
         },
     );
 
-    let dist_var_v2 = dist_var_helper(&v2_ord, grand_means_v2.get_means(), length as f64);
+    let dist_var_v2 = dist_var_helper(&v2_ord, grand_means_v2.get_means(), len as f64);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_per
@@ -70,8 +70,8 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
         });
 
     Ok(
-        ((-0.5 * v1_dist_v1 / (length as f64) + v1_1 * v1_dist_1 / (length.pow(2) as f64)
-            - 0.5 * v1_1.powi(2) * dist_1 / (length.pow(3) as f64))
+        ((-0.5 * v1_dist_v1 / (len as f64) + v1_1 * v1_dist_1 / (len.pow(2) as f64)
+            - 0.5 * v1_1.powi(2) * dist_1 / (len.pow(3) as f64))
             / (dist_var_v2 * dist_var_v1).sqrt())
         .sqrt(),
     )
@@ -94,7 +94,7 @@ pub fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
 
 /// v1 must be 0-1-valued
 pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let length = v1.len();
+    let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
     let Ordering {
@@ -105,7 +105,7 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
 
     v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
-    let v1_transformed_sum = v1_per.iter().sum::<f64>() / length as f64;
+    let v1_transformed_sum = v1_per.iter().sum::<f64>() / len as f64;
     v1_per.iter_mut().for_each(|vi| *vi -= v1_transformed_sum);
 
     grand_means_v2_weighted.compute_ordered_weighted(&v1_per);
@@ -115,5 +115,5 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
         .zip(grand_means_v2_weighted.get_means())
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
-        / (2.0 * length as f64))
+        / (2.0 * len as f64))
 }
