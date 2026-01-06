@@ -1,8 +1,8 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
+use itertools::izip;
 use rayon::prelude::*;
-
 use std::error::Error;
 
 use crate::frob_inner_product::compute_frobenius_inner_product;
@@ -86,9 +86,7 @@ fn dist_cov_helper(
     let frob_prod_dist_mat = compute_frobenius_inner_product(v1, v2, len);
 
     // dot product of the grand means of the distance matrices corresponding to v1 and v2
-    let dot_prod_grand_means = grand_mean_v1
-        .iter()
-        .zip(grand_mean_v2.iter())
+    let dot_prod_grand_means = izip!(grand_mean_v1, grand_mean_v2)
         .map(|(a, b)| a * b)
         .sum::<f64>();
 

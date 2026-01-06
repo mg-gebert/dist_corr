@@ -1,6 +1,7 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
+use itertools::izip;
 use std::error::Error;
 
 use crate::dist_corr::dist_var_helper;
@@ -12,7 +13,7 @@ use crate::ordering::Ordering;
 
 // v1 and v2 must be 0-1-valued
 pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let (n00, n01, n10, n11) = v1.iter().zip(v2.iter()).fold(
+    let (n00, n01, n10, n11) = izip!(v1, v2).fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
             (0.0, 0.0) => (n00 + 1.0, n01, n10, n11),
@@ -47,18 +48,18 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
     let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len as f64);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
-    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_per
-        .iter()
-        .zip(grand_means_v2_weighted.iter())
-        .zip(grand_means_v2.iter())
-        .fold((0.0, 0.0, 0.0, 0.0), |acc, ((vi, vwi_weighted), vwi)| {
-            (
-                acc.0 + vi * vwi_weighted,
-                acc.1 + vi,
-                acc.2 + vi * vwi,
-                acc.3 + vwi,
-            )
-        });
+    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) =
+        izip!(v1_per, grand_means_v2_weighted, grand_means_v2).fold(
+            (0.0, 0.0, 0.0, 0.0),
+            |acc, (vi, vwi_weighted, vwi)| {
+                (
+                    acc.0 + vi * vwi_weighted,
+                    acc.1 + vi,
+                    acc.2 + vi * vwi,
+                    acc.3 + vwi,
+                )
+            },
+        );
 
     Ok(
         ((-0.5 * v1_dist_v1 / (len as f64) + v1_1 * v1_dist_1 / (len.pow(2) as f64)
@@ -70,7 +71,7 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
 
 // v1 and v2 must be a 0-1-valued
 pub fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let (n00, n01, n10, n11) = v1.iter().zip(v2.iter()).fold(
+    let (n00, n01, n10, n11) = izip!(v1, v2).fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
             (0.0, 0.0) => (n00 + 1.0, n01, n10, n11),
@@ -99,9 +100,7 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
 
     let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
-    Ok(-v1_per
-        .iter()
-        .zip(&grand_means_v2_weighted)
+    Ok(-izip!(v1_per, grand_means_v2_weighted)
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
         / (2.0 * len as f64))
