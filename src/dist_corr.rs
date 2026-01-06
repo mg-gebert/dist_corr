@@ -1,7 +1,6 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
-use rayon::join;
 use rayon::prelude::*;
 
 use std::error::Error;
@@ -24,31 +23,16 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
         order_v1_per,
     } = Ordering::order_wrt_v2(v1, v2, true);
 
-    // initialize grand means providers
-    let mut grand_means_v1 = GrandMeans::new(&v1_per);
-    let mut grand_means_v2 = GrandMeans::new(&v2_ord);
+    // compute grand means of v1 and v2
+    let grand_means_v1 = GrandMeans::new(&v1_per).compute_unordered(order_v1_per.as_ref().unwrap());
+    let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
 
     // compute distance variance of v1 and v2
-    // update grand means with grand means of v1 and v2
-    let (dist_var_v1, dist_var_v2) = join(
-        || {
-            grand_means_v1.compute_unordered(order_v1_per.as_ref().unwrap());
-            dist_var_helper(&v1_per, grand_means_v1.get_means(), len as f64)
-        },
-        || {
-            grand_means_v2.compute_ordered();
-            dist_var_helper(&v2_ord, grand_means_v2.get_means(), len as f64)
-        },
-    );
+    let dist_var_v1 = dist_var_helper(&v1_per, &grand_means_v1, len as f64);
+    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len as f64);
 
     // compute distance covariance
-    let dist_cov_v1_v2 = dist_cov_helper(
-        &v1_per,
-        &v2_ord,
-        grand_means_v1.get_means(),
-        grand_means_v2.get_means(),
-        len,
-    );
+    let dist_cov_v1_v2 = dist_cov_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len);
 
     Ok((dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt()).sqrt())
 }
@@ -64,25 +48,15 @@ pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
         order_v1_per,
     } = Ordering::order_wrt_v2(v1, v2, true);
 
-    // initialize grand means providers
-    let mut grand_means_v1 = GrandMeans::new(&v1_per);
-    let mut grand_means_v2 = GrandMeans::new(&v2_ord);
-
-    // update grand means with grand means of v1 and v2
-    let ((), ()) = join(
-        || {
-            grand_means_v1.compute_unordered(order_v1_per.as_ref().unwrap());
-        },
-        || {
-            grand_means_v2.compute_ordered();
-        },
-    );
+    // compute grand means of v1 and v2
+    let grand_means_v1 = GrandMeans::new(&v1_per).compute_unordered(order_v1_per.as_ref().unwrap());
+    let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
 
     Ok(dist_cov_helper(
         &v1_per,
         &v2_ord,
-        grand_means_v1.get_means(),
-        grand_means_v2.get_means(),
+        &grand_means_v1,
+        &grand_means_v2,
         len,
     ))
 }
@@ -95,12 +69,10 @@ pub(crate) fn dist_var(v: &[f64]) -> f64 {
     let mut v_ord = v.to_vec();
     v_ord.par_sort_unstable_by(|v_i, v_j| v_i.partial_cmp(v_j).unwrap());
 
-    // initialize grand means
-    let mut grand_means_v = GrandMeans::new(&v_ord);
-    // update grand means
-    grand_means_v.compute_ordered();
+    // compute grand means
+    let grand_means_v = GrandMeans::new(&v_ord).compute_ordered();
 
-    dist_var_helper(v, grand_means_v.get_means(), len as f64)
+    dist_var_helper(v, &grand_means_v, len as f64)
 }
 
 fn dist_cov_helper(

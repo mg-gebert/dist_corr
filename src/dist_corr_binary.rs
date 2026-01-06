@@ -1,7 +1,6 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
-use rayon::join;
 use std::error::Error;
 
 use crate::dist_corr::dist_var_helper;
@@ -38,28 +37,20 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
         mut v1_per, v2_ord, ..
     } = Ordering::order_wrt_v2(v1, v2, false);
 
-    // initialize grand means
-    let mut grand_means_v2 = GrandMeans::new(&v2_ord);
-    let mut grand_means_v2_weighted = GrandMeans::new(&v2_ord);
-
     v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
-    let ((), ()) = join(
-        || {
-            grand_means_v2.compute_ordered();
-        },
-        || {
-            grand_means_v2_weighted.compute_ordered_weighted(&v1_per);
-        },
-    );
+    // compute grand means
+    let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
+    let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
-    let dist_var_v2 = dist_var_helper(&v2_ord, grand_means_v2.get_means(), len as f64);
+    // compute distance variances
+    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len as f64);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) = v1_per
         .iter()
-        .zip(grand_means_v2_weighted.get_means().iter())
-        .zip(grand_means_v2.get_means().iter())
+        .zip(grand_means_v2_weighted.iter())
+        .zip(grand_means_v2.iter())
         .fold((0.0, 0.0, 0.0, 0.0), |acc, ((vi, vwi_weighted), vwi)| {
             (
                 acc.0 + vi * vwi_weighted,
@@ -101,18 +92,16 @@ pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>
         mut v1_per, v2_ord, ..
     } = Ordering::order_wrt_v2(v1, v2, false);
 
-    let mut grand_means_v2_weighted = GrandMeans::new(&v2_ord);
-
     v1_per.iter_mut().for_each(|vi| *vi = 2.0 * *vi - 1.0);
 
     let v1_transformed_sum = v1_per.iter().sum::<f64>() / len as f64;
     v1_per.iter_mut().for_each(|vi| *vi -= v1_transformed_sum);
 
-    grand_means_v2_weighted.compute_ordered_weighted(&v1_per);
+    let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
     Ok(-v1_per
         .iter()
-        .zip(grand_means_v2_weighted.get_means())
+        .zip(&grand_means_v2_weighted)
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
         / (2.0 * len as f64))
