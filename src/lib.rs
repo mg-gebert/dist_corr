@@ -68,6 +68,9 @@
 //! 1. `O(n log n)` if one vector is binary but considerably faster than the non-binary implementation above.
 //! 2. `O(n)` if both vectors are binary.
 //!
+//! The formulas behind the faster binary implementations are explained here:
+//!
+//! <a href="https://github.com/mg-gebert/dist_corr/blob/master/dist_corr_notes_gebert_lee.pdf" target="_blank" rel="noopener noreferrer">dist_corr_notes_gebert_lee.pdf</a>
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Modules

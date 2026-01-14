@@ -106,6 +106,9 @@ The complexity of the implemented algorithms in the case of binary vectors is
 1. `O(n log n)` if one vector is binary but still considerably faster than the non-binary `O(n log n)` implementation above - see speed benchmarks later.
 2. `O(n)` if both vectors are binary.
 
+For further details about the formulas used in the binary implementation, see
+<a href="https://github.com/mg-gebert/dist_corr/blob/master/dist_corr_notes_gebert_lee.pdf" target="_blank" rel="noopener noreferrer">dist_corr_notes_gebert_lee.pdf</a>.
+
 Notes:
 - When both boolean flags are set to `true`, the corresponding slice is validated to contain only `0.0` or `1.0`. If validation fails, an error is returned.
 - For distance correlation, the result is clamped to the range `[0.0, 1.0]` before being returned to avoid tiny negative values due to floating-point error.
