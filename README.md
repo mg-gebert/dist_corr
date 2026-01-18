@@ -219,7 +219,7 @@ Type: `DistCovariance`
 
 ## License
 
-See the LICENSE file in this repository for license terms.
+This project is licensed under the MIT License.
 
 ## Contact / Maintainers
 
