@@ -38,6 +38,32 @@ fn dist_corr_small(c: &mut Criterion) {
     }
 }
 
+fn dist_corr_little(c: &mut Criterion) {
+    let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
+    let (v1, v2) = samples_random(8013, 76, |x| x * x);
+
+    let mut group = c.benchmark_group("Little");
+
+    let dist_corr = DistCorrelation;
+
+    for &threads in &thread_counts {
+        let pool = ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .unwrap();
+
+        group.bench_with_input(
+            BenchmarkId::new("Threads", threads),
+            &threads,
+            |b, &_threads| {
+                pool.install(|| {
+                    b.iter(|| dist_corr.compute(&v1, &v2));
+                });
+            },
+        );
+    }
+}
+
 fn dist_corr_medium(c: &mut Criterion) {
     let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
     let (v1, v2) = samples_random(2_u64.pow(15) as usize, 76, |x| x * x);
@@ -100,6 +126,7 @@ criterion_group!(
 
     targets =
         dist_corr_small,
+        dist_corr_little,
         dist_corr_medium,
         dist_corr_big,
 
