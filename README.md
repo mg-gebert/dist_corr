@@ -77,7 +77,7 @@ The implemented algorithm follows the one described in:
 > "A fast algorithm for computing distance correlation."  
 > *Computational Statistics & Data Analysis*, **135**, 15–24.
 
-The algorithm is of complexity `O(n log n)` where `n` denotes the common length of the two vectors.
+The algorithm is of complexity $O(n \log n)$ where $n$ denotes the common length of the two vectors.
 
 ### Binary data
 
@@ -103,8 +103,8 @@ let cov = dist_cov.compute_binary(&v_real, &v_bin_1, false, true).unwrap();
 let cov = dist_cov.compute_binary(&v_bin_1, &v_bin_2, true, true).unwrap();
 ```
 The complexity of the implemented algorithms in the case of binary vectors is 
-1. `O(n log n)` if one vector is binary but still considerably faster than the non-binary `O(n log n)` implementation above - see speed benchmarks later.
-2. `O(n)` if both vectors are binary.
+1. $O(n \log n)$ if one vector is binary but still considerably faster than the non-binary $O(n \log n)$ implementation above - see speed benchmarks later. We call this the semi-binary algorithm.
+2. $O(n)$ if both vectors are binary. We call this the full-binary algorithm.
 
 For further details about the formulas used in the binary implementation, see
 <a href="https://github.com/mg-gebert/dist_corr/blob/master/dist_corr_notes_gebert_lee.pdf" target="_blank" rel="noopener noreferrer">dist_corr_notes_gebert_lee.pdf</a>.
@@ -129,9 +129,70 @@ The implementation of the above is considerably faster than calling `DistCovaria
 
 ## Performance and speed benchmarks
 
-- The crate implements specialized algorithms for binary inputs which are often considerably faster than the general-purpose routines.
+In this section we evaluate the performance of the standard $O(n\log n)$ vs the semi-binary vs the full-binary algorithm. Benchmarking was performed on a Windows system equipped with an AMD Ryzen 7 PRO 6850U processor and 32 GB of RAM.
 
-- Todo: Here speed benchmarks!
+### One binary vector
+
+We generate pairs $(v_1,v_2)$ of vectors of length $n$. The entries of $v_1$ are sampled independently and uniformly from the interval $[-10,10]$. The companion vector $v_2$ is then defined by
+
+- $v_2(j) := 1.0$,  if  $v_1(j) < 0.0$
+- $v_2(j) := 0.0$,  otherwise 
+
+for each $j=1,\dots,n$, i.e., we compare a general float vector with a binary vector. We compute the distance correlation for input sizes $n=2^{m}$ with $m\in\{6,8,10,12,14,16,18,20,22\}$ using:
+
+1. the standard $O(n\log n)$ algorithm: `dist_corr.compute(&v_1, &v_2)`.
+2. the semi-binary $O(n\log n)$ algorithm for one binary vector: `dist_corr.compute_binary(&v_1, &v_2, false, true)`.
+
+The speed test is performed executing the `cargo bench` test `benches\dist_corr_speed_timing.rs`.
+
+**Table 1 — Median running times (seconds) for general float vs binary**
+
+| $n$ | standard (s) | semi-binary (s) |
+|:---:|:------------:|:---------------:|
+| $2^6$  | $3.8514\times10^{-6}$ | $1.2830\times10^{-6}$ |
+| $2^8$  | $1.93810\times10^{-5}$ | $0.57068\times10^{-5}$ |
+| $2^{10}$ | $9.70580\times10^{-5}$ | $2.79640\times10^{-5}$ |
+| $2^{12}$ | $4.486000\times10^{-4}$ | $1.313100\times10^{-4}$ |
+| $2^{14}$ | $1.652700\times10^{-3}$ | $5.121000\times10^{-4}$ |
+| $2^{16}$ | $9.675100\times10^{-3}$ | $2.068600\times10^{-3}$ |
+| $2^{18}$ | $4.708400\times10^{-2}$ | $1.064600\times10^{-2}$ |
+| $2^{20}$ | $2.961400\times10^{-1}$ | $0.4855400\times10^{-1}$ |
+| $2^{22}$ | $1.504900\times10^{0}$ | $0.2533500\times10^{0}$ |
+
+---
+
+### Two binary vectors
+
+We generate pairs $(v_1,v_2)$ of length $n$ where $v_1$ is a random binary (0/1) vector with probability $P(0)=P(1)=0.5$. The companion vector $v_2$ is defined by
+
+- $v_2(j) := v_1(j)$, if $2 | v_1(j)$
+- $v_2(j) := 0.0$, otherwise
+
+for each $j=1,\dots,n$.
+We compute the distance correlation for the same input sizes $n=2^{m}$ with $m\in\{6,8,10,12,14,16,18,20,22\}$ using:
+
+1. the standard $O(n\log n)$ algorithm: `dist_corr.compute(&v_1, &v_2)`.
+2. the semi-binary $O(n\log n)$ algorithm for one binary vectorr: `dist_corr.compute_binary(&v_1, &v_2, false, true)`.
+3. the full-binary $O(n)$ algorithm for two binary vectors: `dist_corr.compute_binary(&v_1, &v_2, true, true)`.
+
+The speed test is performed executing the `cargo bench` test `benches\dist_corr_speed_timing.rs`.
+
+**Table 2 — Median running times (seconds) for binary vs binary**
+
+| $n$ | standard (s) | semi-binary (s) | full-binary (s) |
+|:---:|:------------:|:---------------:|:---------------:|
+| $2^{6}$  | $3.3123\times10^{-6}$  | $0.8548\times10^{-6}$  | $0.0656\times10^{-6}$ |
+| $2^{8}$  | $1.4228\times10^{-5}$  | $0.3175\times10^{-5}$  | $0.0258\times10^{-5}$ |
+| $2^{10}$ | $6.6114\times10^{-5}$  | $1.1531\times10^{-5}$  | $0.1144\times10^{-5}$ |
+| $2^{12}$ | $2.7786\times10^{-4}$  | $0.6089\times10^{-4}$  | $0.0475\times10^{-4}$ |
+| $2^{14}$ | $1.0255\times10^{-3}$  | $0.2861\times10^{-3}$  | $0.0452\times10^{-3}$ |
+| $2^{16}$ | $4.7995\times10^{-3}$  | $1.2748\times10^{-3}$  | $0.2663\times10^{-3}$ |
+| $2^{18}$ | $2.4360\times10^{-2}$  | $0.8102\times10^{-2}$  | $0.1084\times10^{-2}$ |
+| $2^{20}$ | $1.3763\times10^{-1}$  | $0.2827\times10^{-1}$  | $0.0438\times10^{-1}$ |
+| $2^{22}$ | $6.2279\times10^{-1}$  | $1.1863\times10^{-1}$  | $0.1749\times10^{-1}$ |
+
+---
+
 
 ## Error handling
 
