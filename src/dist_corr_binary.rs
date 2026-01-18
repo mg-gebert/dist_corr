@@ -12,7 +12,7 @@ use crate::ordering::Ordering;
 // Implementation
 
 // v1 and v2 must be 0-1-valued
-pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let (n00, n01, n10, n11) = izip!(v1, v2).try_fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
@@ -31,7 +31,7 @@ pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
 }
 
 /// v1 must be 0-1-valued
-pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let len = v1.len() as f64;
 
     // sort v1,v2 with respect to ordering of v2
@@ -69,7 +69,7 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
 }
 
 // v1 and v2 must be a 0-1-valued
-pub fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let (n00, n01, n10, n11) = izip!(v1, v2).fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
@@ -84,7 +84,7 @@ pub fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
 }
 
 /// v1 must be 0-1-valued
-pub fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2

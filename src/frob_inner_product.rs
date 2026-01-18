@@ -27,6 +27,15 @@ struct Csum {
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
+/// computes the frobenius inner product of the distance matrices
+///
+/// D_v1 = |v1_i - v1_j|_ij and D_v2 = |v2_i - v2_j|_ij
+///
+/// which is
+///
+/// tr D_v1 D_v2
+///
+/// Important: v2 needs to be ordered increasingly
 pub fn compute_frobenius_inner_product(v1: &[f64], v2: &[f64], len: usize) -> f64 {
     // initialize indices
     let mut idxs_before: Vec<usize> = (0..len).collect();
