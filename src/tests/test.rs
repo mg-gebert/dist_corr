@@ -48,11 +48,11 @@ fn independent_2() {
     let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
     let v1: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_1.gen_range(-10.0..10.0))
+        .map(move |_x| rng_1.random_range(-10.0..10.0))
         .collect();
 
     let v2: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_2.gen_range(-10.0..10.0))
+        .map(move |_x| rng_2.random_range(-10.0..10.0))
         .collect();
 
     let dist_correlation = DistCorrelation;
@@ -145,7 +145,7 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
     println!("Sample size: {:?}", sample_size);
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     let v1: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng.gen_range(-10.0..10.0))
+        .map(move |_x| rng.random_range(-10.0..10.0))
         .collect();
 
     let v2: Vec<f64> = v1.iter().map(func).collect();

@@ -43,12 +43,12 @@ fn medium_binary() {
     let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
     let v1: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_1.gen_range(-10.0..10.0))
+        .map(move |_x| rng_1.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
     let v2: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_2.gen_range(-10.0..10.0))
+        .map(move |_x| rng_2.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
@@ -117,12 +117,12 @@ fn medium_one_binary() {
     let mut rng_2 = ChaCha8Rng::seed_from_u64(11);
 
     let v1: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_1.gen_range(-10.0..10.0))
+        .map(move |_x| rng_1.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
     let v2: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_2.gen_range(-10.0..10.0))
+        .map(move |_x| rng_2.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
@@ -157,7 +157,7 @@ fn hard_one_binary() {
     println!("Length of vectors: {:?}", sample_size);
 
     let v1: Vec<f64> = (0..sample_size)
-        .map(move |_x| rng_1.gen_range(-10.0..10.0))
+        .map(move |_x| rng_1.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 

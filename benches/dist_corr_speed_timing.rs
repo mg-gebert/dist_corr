@@ -159,7 +159,7 @@ fn samples_random_two_binary(len: usize, seed_1: u64) -> (Vec<f64>, Vec<f64>) {
     let mut rng_1 = ChaCha8Rng::seed_from_u64(seed_1);
 
     let v1: Vec<f64> = (0..len)
-        .map(move |_x| rng_1.gen_range(-10.0..10.0))
+        .map(move |_x| rng_1.random_range(-10.0..10.0))
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
@@ -174,7 +174,9 @@ fn samples_random_two_binary(len: usize, seed_1: u64) -> (Vec<f64>, Vec<f64>) {
 
 fn samples_random_by_func(len: usize, seed: u64, func: fn(&f64) -> f64) -> (Vec<f64>, Vec<f64>) {
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
-    let v1: Vec<f64> = (0..len).map(move |_x| rng.gen_range(-10.0..10.0)).collect();
+    let v1: Vec<f64> = (0..len)
+        .map(move |_x| rng.random_range(-10.0..10.0))
+        .collect();
     let v2: Vec<f64> = v1.iter().map(func).collect();
 
     (v1, v2)
