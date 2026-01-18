@@ -151,8 +151,8 @@ fn medium_one_binary() {
 
 #[test]
 fn hard_one_binary() {
-    let sample_size = 1000;
-    let mut rng_1 = ChaCha8Rng::seed_from_u64(134);
+    let sample_size = 2_i32.pow(22); //1_000_000;
+    let mut rng_1 = ChaCha8Rng::seed_from_u64(76);
 
     println!("Length of vectors: {:?}", sample_size);
 
@@ -182,11 +182,11 @@ fn hard_one_binary() {
     let dist_corr_one_binary = dist_correlation
         .compute_binary(&v1, &v2, true, false)
         .unwrap();
+    println!("Result: {:?}", dist_corr_one_binary);
+    println!("Time {}s", tick.elapsed().as_secs_f32());
     let dist_corr_one_binary_flipped = dist_correlation
         .compute_binary(&v2, &v1, false, true)
         .unwrap();
-    println!("Result: {:?}", dist_corr_one_binary);
-    println!("Time {}s", tick.elapsed().as_secs_f32());
 
     println!("-------------------------");
     println!("Dist Corr with two binary");
