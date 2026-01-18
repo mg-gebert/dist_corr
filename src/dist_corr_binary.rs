@@ -32,7 +32,7 @@ pub fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Erro
 
 /// v1 must be 0-1-valued
 pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let len = v1.len();
+    let len = v1.len() as f64;
 
     // sort v1,v2 with respect to ordering of v2
     let Ordering {
@@ -46,7 +46,7 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
     let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
     // compute distance variances
-    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len as f64);
+    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len);
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) =
@@ -62,12 +62,10 @@ pub fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error
             },
         );
 
-    Ok(
-        ((-0.5 * v1_dist_v1 / (len as f64) + v1_1 * v1_dist_1 / (len.pow(2) as f64)
-            - 0.5 * v1_1.powi(2) * dist_1 / (len.pow(3) as f64))
-            / (dist_var_v2 * dist_var_v1).sqrt())
-        .sqrt(),
-    )
+    Ok(((-0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
+        - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len))
+        / (dist_var_v2 * dist_var_v1).sqrt())
+    .sqrt())
 }
 
 // v1 and v2 must be a 0-1-valued
