@@ -34,3 +34,9 @@ harness = false
 name = "dist_corr_speed_timing"
 path = "benches/dist_corr_speed_timing.rs"
 harness = false
+
+
+[[bench]]
+name = "dist_corr_speed_comparison"
+path = "benches/dist_corr_speed_comparison.rs"
+harness = false
