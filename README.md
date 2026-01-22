@@ -2,13 +2,13 @@
 
 This crate provides small and fast Rust utilities for computing **distance correlation** and **distance covariance** between pairs of numeric vectors in $\mathbb{R}^n$, with optimized implementations for binary (0/1) data.
 
-These dependence measures were introduced in the seminal paper:
+These dependence measures were introduced in the seminal paper
 
 > Székely, G. J., Rizzo, M. L., and Bakirov, N. K. (2007).  
 > "Measuring and testing dependence by correlation of distances."  
 > *The Annals of Statistics*, **35**(6), 2769–2794
 
-and are defined the following way.
+and are defined the following way. 
 
 ## Definition
 
@@ -98,10 +98,11 @@ let corr_both_bin = dist_corr.compute_binary(&v_bin_1, &v_bin_2, true, true).unw
 
 let dist_cov = DistCovariance;
 // v1 non-binary, v2 binary
-let cov = dist_cov.compute_binary(&v_real, &v_bin_1, false, true).unwrap();
+let cov_semi_bin = dist_cov.compute_binary(&v_real, &v_bin_1, false, true).unwrap();
 // v1 and v2 both binary
-let cov = dist_cov.compute_binary(&v_bin_1, &v_bin_2, true, true).unwrap();
+let cov_both_bin = dist_cov.compute_binary(&v_bin_1, &v_bin_2, true, true).unwrap();
 ```
+
 The complexity of the implemented algorithms in the case of binary vectors is 
 1. $O(n \log n)$ if one vector is binary but still considerably faster than the non-binary $O(n \log n)$ implementation above - see speed benchmarks later. We call this the semi-binary algorithm.
 2. $O(n)$ if both vectors are binary. We call this the full-binary algorithm.
@@ -126,6 +127,42 @@ let var = dist_var.compute_var(&v).unwrap();
 ```
 
 The implementation of the above is considerably faster than calling `DistCovariance::compute(v, v)` provided that the input `v` is not a binary vector.
+
+ ### Calculating the Distance Correlation Matrix
+
+ In the following example, we efficiently compute the cross distance correlation matrix, which contains the distance correlations between all pairs of vectors from two lists.
+
+ ```rust
+ use dist_corr::DistCovariance;
+
+ let list_1 = [[0.1, 1.0, 2.0, 1.0], [0.0,-1.0,1.0,2.0]];
+ let list_2 = [[-0.1, 1.0, -2.0, 1.0], [0.0,1.0,1.0,2.0]];
+
+ let dist_cov = DistCovariance;
+
+ //compute distance variances for each list
+ //note that (.compute_var(&v) is faster than calling .compute(&v,&v) )
+ let dist_var_1: Vec<f64> = list_1.iter().map(|v_1| dist_cov.compute_var(v_1).unwrap()).collect();
+ let dist_var_2: Vec<f64> = list_2.iter().map(|v_2| dist_cov.compute_var(v_2).unwrap()).collect();
+
+ // compute distance correlation of all vectors pairs in list_1 vs list_2
+ let dist_corr_mat: Vec<Vec<f64>> = list_1
+        .iter()
+        .zip(dist_var_1.iter())
+        .map(|(v_1, var_1)| {
+            let sqrt_var_1 = var_1.sqrt();
+            list_2
+                .iter()
+                .zip(dist_var_2.iter())
+                .map(|(v_2, var_2)| {
+                     let sqrt_var_2 = var_2.sqrt();
+                     let covariance = dist_cov.compute(v_1, v_2).unwrap();
+                     (covariance / (sqrt_var_1 * sqrt_var_2)).sqrt()
+                })
+                .collect()
+        })
+        .collect();
+ ```
 
 ## Performance and speed benchmarks
 
