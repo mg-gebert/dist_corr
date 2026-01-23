@@ -28,13 +28,14 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
 
     // compute distance variance of v1 and v2
-    let dist_var_v1 = dist_var_helper(&v1_per, &grand_means_v1, len as f64);
-    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len as f64);
+    let dist_var_v1 = dist_var_sq_helper(&v1_per, &grand_means_v1, len as f64).sqrt();
+    let dist_var_v2 = dist_var_sq_helper(&v2_ord, &grand_means_v2, len as f64).sqrt();
 
     // compute distance covariance
-    let dist_cov_v1_v2 = dist_cov_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len);
+    let dist_cov_v1_v2 =
+        dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt();
 
-    Ok((dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt()).sqrt())
+    Ok(dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt())
 }
 
 /// computes distance covariance of vectors v1 and v2
@@ -52,16 +53,10 @@ pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let grand_means_v1 = GrandMeans::new(&v1_per).compute_unordered(order_v1_per.as_ref().unwrap());
     let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
 
-    Ok(dist_cov_helper(
-        &v1_per,
-        &v2_ord,
-        &grand_means_v1,
-        &grand_means_v2,
-        len,
-    ))
+    Ok(dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt())
 }
 
-/// computes distance variance of vector v
+/// computes dVar(v)
 pub(crate) fn dist_var(v: &[f64]) -> f64 {
     let len = v.len();
 
@@ -72,10 +67,11 @@ pub(crate) fn dist_var(v: &[f64]) -> f64 {
     // compute grand means
     let grand_means_v = GrandMeans::new(&v_ord).compute_ordered();
 
-    dist_var_helper(v, &grand_means_v, len as f64)
+    dist_var_sq_helper(v, &grand_means_v, len as f64).sqrt()
 }
 
-fn dist_cov_helper(
+/// computes dCov^2 from intermediate input
+fn dist_cov_sq_helper(
     v1: &[f64],
     v2: &[f64],
     grand_mean_v1: &[f64],
@@ -102,7 +98,8 @@ fn dist_cov_helper(
         + dist_mat_v1_one_norm * dist_mat_v2_one_norm / len_sq
 }
 
-pub(crate) fn dist_var_helper(v: &[f64], grand_means: &[f64], len: f64) -> f64 {
+/// computes dVar^2 from intermediate input
+pub(crate) fn dist_var_sq_helper(v: &[f64], grand_means: &[f64], len: f64) -> f64 {
     let (sum, sum_of_sq) = v.iter().fold((0.0, 0.0), |(sum, sum_of_sq), &x| {
         (sum + x, sum_of_sq + x * x)
     });

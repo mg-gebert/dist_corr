@@ -154,13 +154,13 @@ impl DistCovariance {
     /// ```
     /// use dist_corr::DistCovariance;
     ///
-    /// let v1 = vec![1.0, 2.0];
-    /// let v2 = vec![2.0, 4.0];
+    /// let v1 = vec![0.0, 1.0, 0.0, 1.0];
+    /// let v2 = vec![0.0, 1.0, 1.0, 0.0];
     ///
     /// let dist_cov = DistCovariance;
     /// let result = dist_cov.compute(&v1, &v2).unwrap();
     ///
-    /// assert_eq!(result, 0.5);
+    /// assert_eq!(result, 0.0);
     /// ```
     pub fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
         self.compute_binary(v1, v2, false, false)

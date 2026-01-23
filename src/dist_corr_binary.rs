@@ -4,7 +4,7 @@
 use itertools::izip;
 use std::error::Error;
 
-use crate::dist_corr::dist_var_helper;
+use crate::dist_corr::dist_var_sq_helper;
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
 
@@ -46,7 +46,7 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
     let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
     // compute distance variances
-    let dist_var_v2 = dist_var_helper(&v2_ord, &grand_means_v2, len);
+    let dist_var_v2 = dist_var_sq_helper(&v2_ord, &grand_means_v2, len).sqrt();
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
     let (v1_dist_v1, v1_1, v1_dist_1, dist_1) =
@@ -62,13 +62,14 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
             },
         );
 
-    Ok(((-0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
-        - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len))
-        / (dist_var_v2 * dist_var_v1).sqrt())
-    .sqrt())
+    // compute squared distance covariance
+    let dist_cov_sq = -0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
+        - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len);
+
+    Ok((dist_cov_sq / (dist_var_v2 * dist_var_v1)).sqrt())
 }
 
-// v1 and v2 must be a 0-1-valued
+/// v1 and v2 must be a 0-1-valued
 pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let (n00, n01, n10, n11) = izip!(v1, v2).try_fold(
         (0.0, 0.0, 0.0, 0.0),
@@ -81,7 +82,7 @@ pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
         },
     )?;
 
-    Ok((2.0 * (n11 * n00 - n10 * n01) / (v1.len() as f64).powi(2)).powi(2))
+    Ok(2.0 * (n11 * n00 - n10 * n01).abs() / (v1.len() as f64).powi(2))
 }
 
 /// v1 must be 0-1-valued
@@ -100,8 +101,10 @@ pub(crate) fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn
 
     let grand_means_v2_weighted = GrandMeans::new(&v2_ord).compute_ordered_weighted(&v1_per);
 
-    Ok(-izip!(v1_per, grand_means_v2_weighted)
+    let dist_cov_sq = -izip!(v1_per, grand_means_v2_weighted)
         .map(|(vi, grand_mean_i)| vi * grand_mean_i)
         .sum::<f64>()
-        / (2.0 * len as f64))
+        / (2.0 * len as f64);
+
+    Ok(dist_cov_sq.sqrt())
 }

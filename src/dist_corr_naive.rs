@@ -9,7 +9,7 @@ use rayon::prelude::*;
 /// naive implementation of distance covariance with n^2 complexity
 ///
 /// used to test if faster algorithms give correct results
-pub fn _dist_cov_naive(data_1: &[f64], data_2: &[f64]) -> f64 {
+pub fn _dist_cov_sq_naive(data_1: &[f64], data_2: &[f64]) -> f64 {
     let data_length = data_1.len() as f64;
     let dist_hs_norm = data_1
         .par_iter()

@@ -6,7 +6,7 @@ use rand_chacha::ChaCha8Rng;
 use std::time::Instant;
 
 use crate::api::{DistCorrelation, DistCovariance};
-use crate::dist_corr_naive::_dist_cov_naive;
+use crate::dist_corr_naive::_dist_cov_sq_naive;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Tests
@@ -25,9 +25,9 @@ fn independent() {
     let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
     let tick = Instant::now();
-    let dist_cov_naive = _dist_cov_naive(&v1, &v2);
-    let dist_var_v1 = _dist_cov_naive(&v1, &v1);
-    let dist_var_v2 = _dist_cov_naive(&v2, &v2);
+    let dist_cov_naive = _dist_cov_sq_naive(&v1, &v2);
+    let dist_var_v1 = _dist_cov_sq_naive(&v1, &v1);
+    let dist_var_v2 = _dist_cov_sq_naive(&v2, &v2);
     let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
     let time_naive = tick.elapsed().as_secs_f32();
 
@@ -64,10 +64,10 @@ fn independent_2() {
     let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
     let tick = Instant::now();
-    let dist_cov_naive = _dist_cov_naive(&v1, &v2);
-    let dist_var_v1 = _dist_cov_naive(&v1, &v1);
-    let dist_var_v2 = _dist_cov_naive(&v2, &v2);
-    let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
+    let dist_cov_naive = _dist_cov_sq_naive(&v1, &v2).sqrt();
+    let dist_var_v1 = _dist_cov_sq_naive(&v1, &v1).sqrt();
+    let dist_var_v2 = _dist_cov_sq_naive(&v2, &v2).sqrt();
+    let dist_corr_naive = dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt();
     let time_naive = tick.elapsed().as_secs_f32();
 
     println!("Dist corr fast: Time {}s", time_fast);
@@ -97,10 +97,10 @@ fn quadratic_relation_simple() {
     assert!((dist_corr - exact_solution).abs() < 1e-10);
 
     let tick = Instant::now();
-    let dist_cov_naive = _dist_cov_naive(&v1, &v2);
-    let dist_var_v1 = _dist_cov_naive(&v1, &v1);
-    let dist_var_v2 = _dist_cov_naive(&v2, &v2);
-    let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
+    let dist_cov_naive = _dist_cov_sq_naive(&v1, &v2).sqrt();
+    let dist_var_v1 = _dist_cov_sq_naive(&v1, &v1).sqrt();
+    let dist_var_v2 = _dist_cov_sq_naive(&v2, &v2).sqrt();
+    let dist_corr_naive = dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt();
     let time_naive = tick.elapsed().as_secs_f32();
 
     println!("Exact solution: {:?}", exact_solution);
@@ -161,10 +161,10 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
     println!("Dist corr: {:?}", dist_corr);
 
     let tick = Instant::now();
-    let dist_cov_naive = _dist_cov_naive(&v1, &v2);
-    let dist_var_v1 = _dist_cov_naive(&v1, &v1);
-    let dist_var_v2 = _dist_cov_naive(&v2, &v2);
-    let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
+    let dist_cov_naive = _dist_cov_sq_naive(&v1, &v2).sqrt();
+    let dist_var_v1 = _dist_cov_sq_naive(&v1, &v1).sqrt();
+    let dist_var_v2 = _dist_cov_sq_naive(&v2, &v2).sqrt();
+    let dist_corr_naive = dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt();
     let time_naive = tick.elapsed().as_secs_f32();
     println!("Dist corr naive: Time {}s", time_naive);
     println!("Dist corr naive: {:?}", dist_corr_naive);
