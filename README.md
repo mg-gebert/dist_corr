@@ -17,7 +17,7 @@ and are defined the following way.
   For two vectors $v = (v_1, \ldots, v_n) \in \mathbb{R}^n$ and $w = (w_1, \ldots, w_n) \in \mathbb{R}^n$, the distance covariance is defined by:
 
 $$
-dCov^2(v,w) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n A_{ij} B_{ij}
+\text{dCov}^2(v,w) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n A_{ij} B_{ij}
 $$
 
   where for $i,j = 1,\ldots,n$:
@@ -31,8 +31,10 @@ $$
 - **Distance correlation**: a dependence measure between two random vectors that is zero if and only if the vectors are independent. Returns a value in [0, 1]. More precisely:
 
 $$
-\text{dCorr}(v,w) = \left(\frac{\text{dCov}(v,w)}{\text{dCov}(v,v)^{1/2}\text{dCov}(w,w)^{1/2}}\right)^{1/2}
+\text{dCorr}(v,w) = \frac{\text{dCov}(v,w)}{\text{dCov}(v,v)^{1/2}\text{dCov}(w,w)^{1/2}} \geq 0.
 $$
+
+We note that $\text{dCov}^2(v,w) \geq 0$ and dCov is its non-negative square root. 
 
 
 ## Installation
