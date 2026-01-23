@@ -212,17 +212,20 @@ impl DistCovariance {
             return Err("v1 and v2 must not be empty".into());
         }
 
-        if v1_binary && !v1.iter().all(|&x| x == 0.0 || x == 1.0) {
-            return Err("v1 must be binary (only 0.0 or 1.0)".into());
-        }
-        if v2_binary && !v2.iter().all(|&x| x == 0.0 || x == 1.0) {
-            return Err("v2 must be binary (only 0.0 or 1.0)".into());
-        }
-
         match (v1_binary, v2_binary) {
             (true, true) => dist_cov_both_binary(v1, v2),
-            (true, false) => dist_cov_one_binary(v1, v2),
-            (false, true) => dist_cov_one_binary(v2, v1),
+            (true, false) => {
+                if v1_binary && !v1.iter().all(|&x| x == 0.0 || x == 1.0) {
+                    return Err("v1 must be binary (only 0.0 or 1.0)".into());
+                };
+                dist_cov_one_binary(v1, v2)
+            }
+            (false, true) => {
+                if v2_binary && !v2.iter().all(|&x| x == 0.0 || x == 1.0) {
+                    return Err("v2 must be binary (only 0.0 or 1.0)".into());
+                };
+                dist_cov_one_binary(v2, v1)
+            }
             (false, false) => dist_cov(v1, v2),
         }
     }

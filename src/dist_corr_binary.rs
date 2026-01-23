@@ -70,15 +70,16 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
 
 // v1 and v2 must be a 0-1-valued
 pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
-    let (n00, n01, n10, n11) = izip!(v1, v2).fold(
+    let (n00, n01, n10, n11) = izip!(v1, v2).try_fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
-            (0.0, 0.0) => (n00 + 1.0, n01, n10, n11),
-            (0.0, _) => (n00, n01 + 1.0, n10, n11),
-            (_, 0.0) => (n00, n01, n10 + 1.0, n11),
-            (_, _) => (n00, n01, n10, n11 + 1.0),
+            (0.0, 0.0) => Ok::<(f64, f64, f64, f64), Box<dyn Error>>((n00 + 1.0, n01, n10, n11)),
+            (0.0, 1.0) => Ok((n00, n01 + 1.0, n10, n11)),
+            (1.0, 0.0) => Ok((n00, n01, n10 + 1.0, n11)),
+            (1.0, 1.0) => Ok((n00, n01, n10, n11 + 1.0)),
+            (_, _) => Err("v1 and v2 must be binary (only 0.0 or 1.0)".into()),
         },
-    );
+    )?;
 
     Ok((2.0 * (n11 * n00 - n10 * n01) / (v1.len() as f64).powi(2)).powi(2))
 }
