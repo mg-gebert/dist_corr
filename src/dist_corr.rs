@@ -31,11 +31,15 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
     let dist_var_v1 = dist_var_sq_helper(&v1_per, &grand_means_v1, len as f64).sqrt();
     let dist_var_v2 = dist_var_sq_helper(&v2_ord, &grand_means_v2, len as f64).sqrt();
 
-    // compute distance covariance
-    let dist_cov_v1_v2 =
-        dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt();
+    if dist_var_v1 > 0.0 && dist_var_v2 > 0.0 {
+        // compute distance covariance
+        let dist_cov_v1_v2 =
+            dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt();
 
-    Ok(dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt())
+        Ok(dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt())
+    } else {
+        Ok(0.0)
+    }
 }
 
 /// computes distance covariance of vectors v1 and v2

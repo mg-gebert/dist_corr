@@ -24,10 +24,14 @@ pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<d
         },
     )?;
 
-    let numerator: f64 = n11 * n00 - n10 * n01;
     let denominator: f64 = ((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10)).sqrt();
 
-    Ok((numerator / denominator).abs())
+    if denominator > 0.0 {
+        let numerator: f64 = n11 * n00 - n10 * n01;
+        Ok((numerator / denominator).abs())
+    } else {
+        Ok(0.0)
+    }
 }
 
 /// v1 must be 0-1-valued
@@ -49,24 +53,28 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
     let dist_var_v2 = dist_var_sq_helper(&v2_ord, &grand_means_v2, len).sqrt();
     let dist_var_v1 = dist_cov_both_binary(v1, v1)?;
 
-    let (v1_dist_v1, v1_1, v1_dist_1, dist_1) =
-        izip!(v1_per, grand_means_v2_weighted, grand_means_v2).fold(
-            (0.0, 0.0, 0.0, 0.0),
-            |acc, (vi, vwi_weighted, vwi)| {
-                (
-                    acc.0 + vi * vwi_weighted,
-                    acc.1 + vi,
-                    acc.2 + vi * vwi,
-                    acc.3 + vwi,
-                )
-            },
-        );
+    if dist_var_v1 > 0.0 && dist_var_v2 > 0.0 {
+        let (v1_dist_v1, v1_1, v1_dist_1, dist_1) =
+            izip!(v1_per, grand_means_v2_weighted, grand_means_v2).fold(
+                (0.0, 0.0, 0.0, 0.0),
+                |acc, (vi, vwi_weighted, vwi)| {
+                    (
+                        acc.0 + vi * vwi_weighted,
+                        acc.1 + vi,
+                        acc.2 + vi * vwi,
+                        acc.3 + vwi,
+                    )
+                },
+            );
 
-    // compute squared distance covariance
-    let dist_cov_sq = -0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
-        - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len);
+        // compute squared distance covariance
+        let dist_cov_sq = -0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
+            - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len);
 
-    Ok((dist_cov_sq / (dist_var_v2 * dist_var_v1)).sqrt())
+        Ok((dist_cov_sq / (dist_var_v2 * dist_var_v1)).sqrt())
+    } else {
+        Ok(0.0)
+    }
 }
 
 /// v1 and v2 must be a 0-1-valued
