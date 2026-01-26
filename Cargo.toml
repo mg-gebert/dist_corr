@@ -1,8 +1,10 @@
 [package]
 name = "dist_corr"
 version = "0.1.0"
-authors = ["Martin Gebert", "Miru Lee"]
 edition = "2021"
+authors = ["Martin Gebert", "Miru Lee"]
+description = "A Rust library for computing distance correlation and related statistics."
+license = "MIT"
 
 [dependencies]
 itertools = "=0.14.0"
