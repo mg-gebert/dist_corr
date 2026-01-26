@@ -2,6 +2,7 @@
 // Using
 
 use itertools::izip;
+use log::debug;
 use rayon::prelude::*;
 use std::error::Error;
 
@@ -98,8 +99,20 @@ fn dist_cov_sq_helper(
 
     let len_sq = (len * len) as f64;
 
-    frob_prod_dist_mat / len_sq - 2.0 * dot_prod_grand_means / len as f64
-        + dist_mat_v1_one_norm * dist_mat_v2_one_norm / len_sq
+    let dist_cov_sq = frob_prod_dist_mat / len_sq - 2.0 * dot_prod_grand_means / len as f64
+        + dist_mat_v1_one_norm * dist_mat_v2_one_norm / len_sq;
+
+    // dist_cov_sq must be >= 0.0
+    // if not there must be a numerical error
+    if dist_cov_sq < 0.0 {
+        debug!(
+            "dist_cov_sq_helper method gives negative: {:?} - use 0.0",
+            dist_cov_sq
+        );
+        0.0
+    } else {
+        dist_cov_sq
+    }
 }
 
 /// computes dVar^2 from intermediate input
@@ -111,6 +124,17 @@ pub(crate) fn dist_var_sq_helper(v: &[f64], grand_means: &[f64], len: f64) -> f6
     let dist_scalar_prod = 2.0 * len * sum_of_sq - 2.0 * sum.powi(2);
     let len_sq = len * len;
 
-    dist_scalar_prod / len_sq - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / len
-        + grand_means.iter().sum::<f64>().powi(2) / len_sq
+    let dist_var_sq = dist_scalar_prod / len_sq
+        - 2.0 * grand_means.iter().map(|a| a * a).sum::<f64>() / len
+        + grand_means.iter().sum::<f64>().powi(2) / len_sq;
+
+    if dist_var_sq < 0.0 {
+        debug!(
+            "dist_var_sq_helper method gives something negative: {:?} - use 0.0",
+            dist_var_sq
+        );
+        0.0
+    } else {
+        dist_var_sq
+    }
 }
