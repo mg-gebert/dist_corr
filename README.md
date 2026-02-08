@@ -1,14 +1,14 @@
 # dist_corr
 
-This crate provides small and fast Rust utilities for computing **distance correlation** and **distance covariance** between pairs of numeric vectors in $\mathbb{R}^n$, with optimized implementations for binary (0/1) data.
+This crate provides small and fast Rust utilities for computing **distance correlation**, **distance covariance** and **distance variance** between pairs of numeric vectors in $\mathbb{R}^n$, with optimized implementations for binary (0/1) data.
 
-These dependence measures were introduced in the seminal paper
+These quantities were introduced in the seminal paper
 
 > Székely, G. J., Rizzo, M. L., and Bakirov, N. K. (2007).  
 > "Measuring and testing dependence by correlation of distances."  
 > *The Annals of Statistics*, **35**(6), 2769–2794
 
-and are defined the following way. 
+and for completeness we provide the definitions in the next section.
 
 ## Definition
 
@@ -36,6 +36,11 @@ $$
 
 We note that $\text{dCov}^2(v,w) \geq 0$ and dCov is its non-negative square root. 
 
+- **Distance variance**: Distance covariance of a vector with itself. 
+
+$$
+\text{dVar}(v,v) = \text{dCov}(v,v).
+$$
 
 ## Installation
 
@@ -114,7 +119,6 @@ For further details about the formulas used in the binary implementation, see
 
 Notes:
 - When both boolean flags are set to `true`, the corresponding slice is validated to contain only `0.0` or `1.0`. If validation fails, an error is returned.
-- For distance correlation, the result is clamped to the range `[0.0, 1.0]` before being returned to avoid tiny negative values due to floating-point error.
 
 ### Distance variance
 
