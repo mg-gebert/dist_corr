@@ -61,12 +61,6 @@ fn medium_binary() {
     println!("Dist corr: {:?}", dist_corr);
     let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
 
-    let dist_cov_naive = _dist_cov_sq_naive(&v1, &v2);
-    let dist_var_v1 = _dist_cov_sq_naive(&v1, &v1);
-    let dist_var_v2 = _dist_cov_sq_naive(&v2, &v2);
-    let dist_corr_naive = (dist_cov_naive / (dist_var_v1 * dist_var_v2).sqrt()).sqrt();
-    println!("Dist corr naive: {:?}", dist_corr_naive);
-
     let tick = Instant::now();
     let dist_corr_binary = dist_correlation
         .compute_binary(&v1, &v2, true, true)
