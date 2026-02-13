@@ -71,7 +71,9 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
         let dist_cov_sq = -0.5 * v1_dist_v1 / len + (v1_1 / len) * (v1_dist_1 / len)
             - (0.5 / len) * (v1_1.powi(2) / len) * (dist_1 / len);
 
-        Ok((dist_cov_sq / (dist_var_v2 * dist_var_v1)).sqrt())
+        Ok((dist_cov_sq / (dist_var_v2 * dist_var_v1))
+            .clamp(0.0, 1.0)
+            .sqrt())
     } else {
         Ok(0.0)
     }
