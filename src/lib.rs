@@ -70,7 +70,8 @@
 //! ```
 //! The complexity of the implemented algorithms in the case of binary vectors is
 //! 1. `O(n log n)` if one vector is binary but considerably faster than the non-binary implementation above.
-//! 2. `O(n)` if both vectors are binary.
+//! 2. `O(n)` if both vectors are binary. Actually, in this case the distance correlation reduces to the absolute value of the Pearson correlation or the <a href="https://en.wikipedia.org/wiki/Phi_coefficient" target="_blank" rel="noopener noreferrer"> Matthews correlation coefficient (MCC)</a>.
+//!
 //!
 //! The formulas behind the faster binary implementations are explained here:
 //!

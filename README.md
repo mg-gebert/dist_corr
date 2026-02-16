@@ -39,7 +39,7 @@ We note that $\text{dCov}^2(v,w) \geq 0$ and dCov is its non-negative square roo
 - **Distance variance**: Distance covariance of a vector with itself. 
 
 $$
-\text{dVar}(v,v) = \text{dCov}(v,v).
+\text{dVar}(v) = \text{dCov}(v,v).
 $$
 
 ## Installation
@@ -49,12 +49,6 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 dist_corr = "0.1"
-```
-
-Or use a local path during development:
-
-```toml
-dist_corr = { path = "../dist_corr" }
 ```
 
 ## Quickstart
@@ -111,8 +105,8 @@ let cov_both_bin = dist_cov.compute_binary(&v_bin_1, &v_bin_2, true, true).unwra
 ```
 
 The complexity of the implemented algorithms in the case of binary vectors is 
-1. $O(n \log n)$ if one vector is binary but still considerably faster than the non-binary $O(n \log n)$ implementation above - see speed benchmarks later. We call this the semi-binary algorithm.
-2. $O(n)$ if both vectors are binary. We call this the full-binary algorithm.
+1. $O(n \log n)$ if one vector is binary but considerably faster than the non-binary $O(n \log n)$ implementation above - see speed benchmarks later. We call this the semi-binary case.
+2. $O(n)$ if both vectors are binary. Actually, in this case the distance correlation is the same as the absolute value of the Pearson correlation or the <a href="https://en.wikipedia.org/wiki/Phi_coefficient" target="_blank" rel="noopener noreferrer"> Matthews correlation coefficient (MCC)</a>. We compute the latter and call this the full-binary case or algorithm.
 
 For further details about the formulas used in the binary implementation, see
 <a href="https://github.com/mg-gebert/dist_corr/blob/master/dist_corr_notes_gebert_lee.pdf" target="_blank" rel="noopener noreferrer">dist_corr_notes_gebert_lee.pdf</a>.
