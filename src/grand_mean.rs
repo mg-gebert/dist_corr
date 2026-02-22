@@ -17,6 +17,7 @@ pub struct GrandMeans<'a> {
 impl<'a> GrandMeans<'a> {
     /// Create a new GrandMeans provider instance.
     pub fn new(v: &'a [f64]) -> Self {
+        assert!(!v.is_empty(), "invalid argument: empty slice");
         Self { v }
     }
 
