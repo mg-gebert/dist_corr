@@ -40,7 +40,7 @@ impl<'a> GrandMeans<'a> {
     /// GM[i] =  sum_j |v[i] - v[j]| / v.len()
     /// ```
     ///
-    /// The resulting grand means are written into `self.out`.
+    /// The resulting grand means are returned as a newly allocated vector.
     /// The algorithm has complexity `O(v.len())`.
     pub fn compute_ordered(self) -> Vec<f64> {
         let mut current_sum_ascending = 0.0;
@@ -76,7 +76,7 @@ impl<'a> GrandMeans<'a> {
     /// GM[i] =  sum_j |v[i] - v[j]| / v.len()
     /// ```
     ///
-    /// The resulting grand means are written into `self.out`.
+    /// The resulting grand means are returned as a newly allocated vector.
     /// The algorithm has complexity `O(v.len())`.
     pub fn compute_unordered(self, order: &[usize]) -> Vec<f64> {
         assert_eq!(order.len(), self.len(), "order must be same length as v");
@@ -109,7 +109,7 @@ impl<'a> GrandMeans<'a> {
     /// M_v[i][j] = |v[i] - v[j]|
     /// ```
     ///
-    /// The resulting grand means are written into `self.out`.
+    /// The resulting grand means are returned as a newly allocated vector.
     /// The algorithm has complexity `O(v.len())`.
     pub fn compute_ordered_weighted(&mut self, w: &[f64]) -> Vec<f64> {
         assert_eq!(w.len(), self.len(), "weights must be same length as v");
