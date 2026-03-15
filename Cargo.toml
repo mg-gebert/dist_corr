@@ -1,6 +1,6 @@
 [package]
 name = "dist_corr"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Martin Gebert", "Miru Lee"]
 description = "A Rust library for computing distance correlation and related statistics."
