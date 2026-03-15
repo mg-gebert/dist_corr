@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Martin Gebert", "Miru Lee"]
 description = "A Rust library for computing distance correlation and related statistics."
 license = "MIT"
+repository = "https://github.com/mg-gebert/dist_corr"
 
 [dependencies]
 itertools = "=0.14.0"
