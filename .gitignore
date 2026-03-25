@@ -1,3 +1,17 @@
 /target
 .vscode/*
 /src/dist_corr_multi.rs
+
+# Python binding build/runtime artifacts
+/python/target/
+/python/.venv/
+/python/**/__pycache__/
+/python/.pytest_cache/
+/python/dist_corr/*.so
+/python/dist_corr/*.pyd
+/python/dist_corr/*.dll
+/python/dist_corr/*.dylib
+/python/dist_corr/*.dSYM/
+
+# macOS/editor noise
+.DS_Store
