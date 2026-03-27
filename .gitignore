@@ -13,5 +13,8 @@
 /python/dist_corr/*.dylib
 /python/dist_corr/*.dSYM/
 
+# benches artifacts
+/benches/__pycache__/
+
 # macOS/editor noise
 .DS_Store

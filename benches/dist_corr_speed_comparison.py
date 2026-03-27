@@ -1,11 +1,12 @@
-"""
-Python benchmark for dcor.distance_correlation to compare with Rust implementation.
-Requires: pip install dcor pytest-benchmark numpy
-Run with: pytest benches/dist_corr_speed_comparison.py --benchmark-min-rounds=10
+"""Python benchmark comparing dcor vs dist_corr Python package.
+
+Run with:
+    poetry run pytest benches/dist_corr_speed_comparison.py --benchmark-min-rounds=10
 """
 
 import numpy as np
 import dcor
+import dist_corr
 import pytest
 
 
@@ -18,12 +19,12 @@ def samples(sample_size: int) -> tuple[np.ndarray, np.ndarray]:
 
 @pytest.fixture
 def small_samples():
-    return samples(1024)
+    return samples(2**10)
 
 
 @pytest.fixture
 def little_samples():
-    return samples(8013)
+    return samples(2**13)
 
 
 @pytest.fixture
@@ -36,39 +37,38 @@ def big_samples():
     return samples(2**20)
 
 
-def test_dist_corr_small(benchmark, small_samples):
-    v1, v2 = small_samples
-    result = benchmark(dcor.distance_correlation, v1, v2)
-    print(f"\nn: 1024 - dist_corr: {result}")
+IMPLEMENTATIONS = {
+    "dcor": dcor.distance_correlation,
+    "dist_corr": dist_corr.distance_correlation,
+}
 
 
-def test_dist_corr_little(benchmark, little_samples):
-    v1, v2 = little_samples
-    result = benchmark(dcor.distance_correlation, v1, v2)
-    print(f"\nn: 8013 - dist_corr: {result}")
+@pytest.mark.parametrize("sample_size", [2**10, 2**13, 2**15, 2**20])
+def test_distance_correlation_correctness(sample_size: int) -> None:
+    v1, v2 = samples(sample_size)
+    dcor_result = dcor.distance_correlation(v1, v2)
+    rust_result = dist_corr.distance_correlation(v1, v2)
+    assert np.isclose(dcor_result, rust_result, atol=1e-10)
 
 
-def test_dist_corr_medium(benchmark, medium_samples):
-    v1, v2 = medium_samples
-    result = benchmark(dcor.distance_correlation, v1, v2)
-    print(f"\nn: {2**15} - dist_corr: {result}")
-
-
-def test_dist_corr_big(benchmark, big_samples):
-    v1, v2 = big_samples
-    result = benchmark(dcor.distance_correlation, v1, v2)
-    print(f"\nn: {2**20} - dist_corr: {result}")
+@pytest.mark.parametrize("sample_size", [2**10, 2**13, 2**15, 2**20], ids=lambda n: f"n={n}")
+@pytest.mark.parametrize("impl_name", ["dcor", "dist_corr"])
+def test_dist_corr_speed_comparison(benchmark, impl_name: str, sample_size: int) -> None:
+    v1, v2 = samples(sample_size)
+    impl = IMPLEMENTATIONS[impl_name]
+    result = benchmark(impl, v1, v2)
+    print(f"\nimpl: {impl_name} - n: {sample_size} - dist_corr: {result}")
 
 
 if __name__ == "__main__":
-    # Quick test run without benchmark framework
     print("Running quick test without benchmarking...")
     for name, size in [
-        ("Small", 1024),
-        ("Little", 8013),
+        ("Small", 2**10),
+        ("Little", 2**13),
         ("Medium", 2**15),
         ("Big", 2**20),
     ]:
         v1, v2 = samples(size)
-        result = dcor.distance_correlation(v1, v2)
-        print(f"{name} (n={size}): {result}")
+        dcor_result = dcor.distance_correlation(v1, v2)
+        rust_result = dist_corr.distance_correlation(v1, v2)
+        print(f"{name} (n={size}) -> dcor: {dcor_result}, dist_corr: {rust_result}")
