@@ -44,11 +44,27 @@ $$
 
 ## Installation
 
+### Rust crate
+
 Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 dist_corr = "0.1"
+```
+
+### Python bindings
+
+Python bindings are supported via the `dist_corr` package.
+
+Install from PyPI:
+
+Build and install locally from source:
+
+```bash
+cd python
+poetry install
+poetry run maturin develop --release
 ```
 
 ## Quickstart
@@ -184,17 +200,17 @@ The speed test is performed executing the `cargo bench` test `benches\dist_corr_
 
 **Table 1 — Median running times (seconds) for general float vs binary**
 
-| $n$ | standard (s) | semi-binary (s) |
+| n | standard (s) | semi-binary (s) |
 |:---:|:------------:|:---------------:|
-| $2^6$  | $3.8514\times10^{-6}$ | $1.2830\times10^{-6}$ |
-| $2^8$  | $1.93810\times10^{-5}$ | $0.57068\times10^{-5}$ |
-| $2^{10}$ | $9.70580\times10^{-5}$ | $2.79640\times10^{-5}$ |
-| $2^{12}$ | $4.486000\times10^{-4}$ | $1.313100\times10^{-4}$ |
-| $2^{14}$ | $1.652700\times10^{-3}$ | $5.121000\times10^{-4}$ |
-| $2^{16}$ | $9.675100\times10^{-3}$ | $2.068600\times10^{-3}$ |
-| $2^{18}$ | $4.708400\times10^{-2}$ | $1.064600\times10^{-2}$ |
-| $2^{20}$ | $2.961400\times10^{-1}$ | $0.4855400\times10^{-1}$ |
-| $2^{22}$ | $1.504900\times10^{0}$ | $0.2533500\times10^{0}$ |
+| 2^6  | 3.8514e-6 | 1.2830e-6 |
+| 2^8  | 1.93810e-5 | 0.57068e-5 |
+| 2^10 | 9.70580e-5 | 2.79640e-5 |
+| 2^12 | 4.486000e-4 | 1.313100e-4 |
+| 2^14 | 1.652700e-3 | 5.121000e-4 |
+| 2^16 | 9.675100e-3 | 2.068600e-3 |
+| 2^18 | 4.708400e-2 | 1.064600e-2 |
+| 2^20 | 2.961400e-1 | 0.4855400e-1 |
+| 2^22 | 1.504900 | 0.2533500 |
 
 ---
 
@@ -216,19 +232,39 @@ The speed test is performed executing the `cargo bench` test `benches\dist_corr_
 
 **Table 2 — Median running times (seconds) for binary vs binary**
 
-| $n$ | standard (s) | semi-binary (s) | full-binary (s) |
+| n | standard (s) | semi-binary (s) | full-binary (s) |
 |:---:|:------------:|:---------------:|:---------------:|
-| $2^{6}$  | $3.3123\times10^{-6}$  | $0.8548\times10^{-6}$  | $0.0656\times10^{-6}$ |
-| $2^{8}$  | $1.4228\times10^{-5}$  | $0.3175\times10^{-5}$  | $0.0258\times10^{-5}$ |
-| $2^{10}$ | $6.6114\times10^{-5}$  | $1.1531\times10^{-5}$  | $0.1144\times10^{-5}$ |
-| $2^{12}$ | $2.7786\times10^{-4}$  | $0.6089\times10^{-4}$  | $0.0475\times10^{-4}$ |
-| $2^{14}$ | $1.0255\times10^{-3}$  | $0.2861\times10^{-3}$  | $0.0452\times10^{-3}$ |
-| $2^{16}$ | $4.7995\times10^{-3}$  | $1.2748\times10^{-3}$  | $0.2663\times10^{-3}$ |
-| $2^{18}$ | $2.4360\times10^{-2}$  | $0.8102\times10^{-2}$  | $0.1084\times10^{-2}$ |
-| $2^{20}$ | $1.3763\times10^{-1}$  | $0.2827\times10^{-1}$  | $0.0438\times10^{-1}$ |
-| $2^{22}$ | $6.2279\times10^{-1}$  | $1.1863\times10^{-1}$  | $0.1749\times10^{-1}$ |
+| 2^6  | 3.3123e-6  | 0.8548e-6  | 0.0656e-6 |
+| 2^8  | 1.4228e-5  | 0.3175e-5  | 0.0258e-5 |
+| 2^10 | 6.6114e-5  | 1.1531e-5  | 0.1144e-5 |
+| 2^12 | 2.7786e-4  | 0.6089e-4  | 0.0475e-4 |
+| 2^14 | 1.0255e-3  | 0.2861e-3  | 0.0452e-3 |
+| 2^16 | 4.7995e-3  | 1.2748e-3  | 0.2663e-3 |
+| 2^18 | 2.4360e-2  | 0.8102e-2  | 0.1084e-2 |
+| 2^20 | 1.3763e-1  | 0.2827e-1  | 0.0438e-1 |
+| 2^22 | 6.2279e-1  | 1.1863e-1  | 0.1749e-1 |
 
 ---
+
+### Python benchmark: our `dist_corr` bindings vs external `dcor` package
+
+Benchmark machine: macOS 26.3.1 (build 25D2128), Apple M1 Pro, 8 logical cores (6 performance cores), 32 GB RAM, Python 3.13.12, NumPy 2.4.3, dcor 0.7.
+
+| n | our `dist_corr` bindings runtime | external `dcor` package runtime | speedup (ours vs `dcor`) |
+|:---:|:----------------------:|:----------------:|:-------:|
+| 2^10 | 94.8787 us | 689.8979 us | 7.27x |
+| 2^13 | 888.7761 us | 7894.7822 us | 8.88x |
+| 2^15 | 2619.8902 us | 51993.1210 us | 19.85x |
+| 2^20 | 81005.5383 us | 20148135.2125 us | 248.73x |
+
+#### Single-core benchmark (`RAYON_NUM_THREADS=1`)
+
+| n | our `dist_corr` bindings runtime | external `dcor` package runtime | speedup (ours vs `dcor`) |
+|:---:|:----------------------:|:----------------:|:-------:|
+| 2^10 | 95.0558 us | 693.3235 us | 7.29x |
+| 2^13 | 1146.9803 us | 7895.1412 us | 6.88x |
+| 2^15 | 5243.5654 us | 51804.5833 us | 9.88x |
+| 2^20 | 233994.3918 us | 20133720.9960 us | 86.04x |
 
 
 ## Error handling
