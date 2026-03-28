@@ -248,6 +248,13 @@ The speed test is performed executing the `cargo bench` test `benches\dist_corr_
 
 ### Python benchmark: our `dist_corr` bindings vs external `dcor` package
 
+For the python benchmark we use the pair of vectors
+
+- $v_1(j) := sin(j)$
+- $v_2(j) := cos(j)$
+
+for $j \in 1,...,n$ where $n = 2^{10}, 2^{13}, 2^{15}, 2^{20}$. 
+
 Benchmark machine: macOS 26.3.1 (build 25D2128), Apple M1 Pro, 8 logical cores (6 performance cores), 32 GB RAM, Python 3.13.12, NumPy 2.4.3, dcor 0.7.
 
 | n | our `dist_corr` bindings runtime | external `dcor` package runtime | speedup (ours vs `dcor`) |
