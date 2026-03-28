@@ -3,8 +3,11 @@ name: Rust CI
 on:
   push:
     branches:
-      - master
-
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+      
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -27,3 +30,18 @@ jobs:
 
       - name: Run cargo clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest numpy
+          pip install -e ./python
+
+      - name: Run Python tests
+        run: pytest python/tests/
