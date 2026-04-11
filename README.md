@@ -246,7 +246,7 @@ The speed test is performed executing the `cargo bench` test `benches\dist_corr_
 
 ---
 
-### Python benchmark: our `dist_corr` bindings vs external `dcor` package
+### Python benchmark: our bindings vs two anonymized external baselines
 
 For the python benchmark we use the pair of vectors
 
@@ -257,21 +257,39 @@ for $j \in 1,...,n$ where $n = 2^{10}, 2^{13}, 2^{15}, 2^{20}$.
 
 Benchmark machine: macOS 26.3.1 (build 25D2128), Apple M1 Pro, 8 logical cores (6 performance cores), 32 GB RAM, Python 3.13.12, NumPy 2.4.3, dcor 0.7.
 
-| n | our `dist_corr` bindings runtime | external `dcor` package runtime | speedup (ours vs `dcor`) |
-|:---:|:----------------------:|:----------------:|:-------:|
-| 2^10 | 94.8787 us | 689.8979 us | 7.27x |
-| 2^13 | 888.7761 us | 7894.7822 us | 8.88x |
-| 2^15 | 2619.8902 us | 51993.1210 us | 19.85x |
-| 2^20 | 81005.5383 us | 20148135.2125 us | 248.73x |
+Benchmark labels:
 
-#### Single-core benchmark (`RAYON_NUM_THREADS=1`)
+- `ours`: this repository's Rust-backed Python bindings.
+- `baseline_py`: external Python baseline.
+- `baseline_cpp`: external C++ extension baseline.
 
-| n | our `dist_corr` bindings runtime | external `dcor` package runtime | speedup (ours vs `dcor`) |
-|:---:|:----------------------:|:----------------:|:-------:|
-| 2^10 | 95.0558 us | 693.3235 us | 7.29x |
-| 2^13 | 1146.9803 us | 7895.1412 us | 6.88x |
-| 2^15 | 5243.5654 us | 51804.5833 us | 9.88x |
-| 2^20 | 233994.3918 us | 20133720.9960 us | 86.04x |
+For comparability, all implementations are called on the same 1D `float64` vectors. The C++ baseline reports the squared quantity, so we apply `sqrt(...)` before comparison.
+
+For larger vectors (`2^15`, `2^18`), the C++ baseline is not run in the pairwise benchmark due to poor practical scaling of that path, and those cells are left blank.
+
+#### Multicore benchmark (`BENCH_NUM_THREADS=8`)
+
+| n | ours (us) | baseline_py (us) | baseline_cpp (us) | speedup (ours vs baseline_py) | speedup (ours vs baseline_cpp) |
+|:---:|:----------------------:|:----------------:|:----------------:|:-----------------------------:|:------------------------------:|
+| 2^8  | 21.0255 | 130.8422 | 892.0175 | 6.22x | 42.43x |
+| 2^10 | 96.8443 | 675.7882 | 26054.2335 | 6.98x | 269.03x |
+| 2^12 | 481.3296 | 3697.2850 | 556570.9167 | 7.68x | 1156.32x |
+| 2^13 | 820.8551 | 7604.7632 | 2232343.1250 | 9.26x | 2719.53x |
+| 2^15 | 2457.3722 | 51508.1041 |  | 20.96x |  |
+| 2^18 | 18468.3482 | 1510708.0500 |  | 81.80x |  |
+
+#### Single-core benchmark (`BENCH_NUM_THREADS=1`)
+
+| n | ours (us) | baseline_py (us) | baseline_cpp (us) | speedup (ours vs baseline_py) | speedup (ours vs baseline_cpp) |
+|:---:|:----------------------:|:----------------:|:----------------:|:-----------------------------:|:------------------------------:|
+| 2^8  | 21.1385 | 131.3314 | 887.2831 | 6.21x | 41.97x |
+| 2^10 | 95.6596 | 678.3898 | 25964.4265 | 7.09x | 271.43x |
+| 2^12 | 511.8610 | 3739.8972 | 553456.6375 | 7.31x | 1081.26x |
+| 2^13 | 1123.6268 | 7661.6776 | 2237482.4792 | 6.82x | 1991.30x |
+| 2^15 | 5131.6849 | 51446.8521 |  | 10.03x |  |
+| 2^18 | 48527.9500 | 1510864.4750 |  | 31.13x |  |
+
+Threading note: for the pairwise distance correlation function benchmarked here, the Python baseline does not provide a parallel pairwise path (it has a `COMPILE_PARALLEL` mode for rowwise APIs, not this pairwise API), and the C++ baseline uses OpenMP only for matrix APIs, not pairwise vectors. As a result, multicore and single-core timings are nearly identical for both baselines in this benchmark.
 
 
 ## Error handling
