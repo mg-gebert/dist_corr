@@ -56,6 +56,16 @@ docs = ["docutils (==0.17.1)", "jupyter-sphinx", "matplotlib", "myst-parser", "p
 test = ["array-api-strict", "numpy (<2)", "pytest", "pytest-cov", "pytest-subtests"]
 
 [[package]]
+name = "distance-correlation"
+version = "0.0.2"
+description = "Computes distance covariances/correlations between vectors and distance covariance/correlation matrices for data matrices"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "distance_correlation-0.0.2.tar.gz", hash = "sha256:93475b8d41593ed5e274229b8baf074561c56ffde29c639396860214f703ce03"},
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.3.1"
 description = "Backport of PEP 654 (exception groups)"
@@ -449,4 +459,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9ba183f95208cc816e3e86812c1e9c2c428b49f85fb1d517d665b6104310bf68"
+content-hash = "6ddbeb3df7ca6063044d529dbcc73576efb7b43f3f06c7e581c4b98d100c9f10"
