@@ -246,50 +246,47 @@ The speed test is performed executing the `cargo bench` test `benches\dist_corr_
 
 ---
 
-### Python benchmark: our bindings vs two anonymized external baselines
+### Python benchmark: `dist_corr` vs `dcor` package vs `distance-correlation` package
 
-For the python benchmark we use the pair of vectors
+We compare the computation time of our Python implementation with two distance correlation packages available on PyPI: [`dcor`](https://pypi.org/project/dcor/) and [`distance-correlation`](https://pypi.org/project/distance-correlation/).
+
+For the Python benchmark, we use the pair of vectors defined by:
 
 - $v_1(j) := sin(j)$
 - $v_2(j) := cos(j)$
 
-for $j \in 1,...,n$ where $n = 2^{10}, 2^{13}, 2^{15}, 2^{20}$. 
+for $j \in 1,...,n$ where $n = 2^{8}, 2^{10}, 2^{12}, 2^{13}, 2^{15}, 2^{18}$. 
 
 Benchmark machine: macOS 26.3.1 (build 25D2128), Apple M1 Pro, 8 logical cores (6 performance cores), 32 GB RAM, Python 3.13.12, NumPy 2.4.3, dcor 0.7.
 
-Benchmark labels:
-
-- `ours`: this repository's Rust-backed Python bindings.
-- `baseline_py`: external Python baseline.
-- `baseline_cpp`: external C++ extension baseline.
-
-For comparability, all implementations are called on the same 1D `float64` vectors. The C++ baseline reports the squared quantity, so we apply `sqrt(...)` before comparison.
-
-For larger vectors (`2^15`, `2^18`), the C++ baseline is not run in the pairwise benchmark due to poor practical scaling of that path, and those cells are left blank.
-
-#### Multicore benchmark (`BENCH_NUM_THREADS=8`)
-
-| n | ours (us) | baseline_py (us) | baseline_cpp (us) | speedup (ours vs baseline_py) | speedup (ours vs baseline_cpp) |
-|:---:|:----------------------:|:----------------:|:----------------:|:-----------------------------:|:------------------------------:|
-| 2^8  | 21.0255 | 130.8422 | 892.0175 | 6.22x | 42.43x |
-| 2^10 | 96.8443 | 675.7882 | 26054.2335 | 6.98x | 269.03x |
-| 2^12 | 481.3296 | 3697.2850 | 556570.9167 | 7.68x | 1156.32x |
-| 2^13 | 820.8551 | 7604.7632 | 2232343.1250 | 9.26x | 2719.53x |
-| 2^15 | 2457.3722 | 51508.1041 |  | 20.96x |  |
-| 2^18 | 18468.3482 | 1510708.0500 |  | 81.80x |  |
+For comparability, all implementations are called on the same 1D `float64` vectors. The `distance-correlation` package reports the squared quantity, so we apply `sqrt(...)` before comparison.
 
 #### Single-core benchmark (`BENCH_NUM_THREADS=1`)
 
-| n | ours (us) | baseline_py (us) | baseline_cpp (us) | speedup (ours vs baseline_py) | speedup (ours vs baseline_cpp) |
-|:---:|:----------------------:|:----------------:|:----------------:|:-----------------------------:|:------------------------------:|
-| 2^8  | 21.1385 | 131.3314 | 887.2831 | 6.21x | 41.97x |
-| 2^10 | 95.6596 | 678.3898 | 25964.4265 | 7.09x | 271.43x |
-| 2^12 | 511.8610 | 3739.8972 | 553456.6375 | 7.31x | 1081.26x |
-| 2^13 | 1123.6268 | 7661.6776 | 2237482.4792 | 6.82x | 1991.30x |
-| 2^15 | 5131.6849 | 51446.8521 |  | 10.03x |  |
-| 2^18 | 48527.9500 | 1510864.4750 |  | 31.13x |  |
+| n | dist_corr (us) | dcor (us) | distance-correlation (us) | 
+|:---:|:----------------------:|:----------------:|:----------------:|
+| 2^8  | 21.1385 | 131.3314 | 887.2831 |
+| 2^10 | 95.6596 | 678.3898 | 25964.4265 |
+| 2^12 | 511.8610 | 3739.8972 | 553456.6375 |
+| 2^13 | 1123.6268 | 7661.6776 | 2237482.4792 |
+| 2^15 | 5131.6849 | 51446.8521 | — |
+| 2^18 | 48527.9500 | 1510864.4750 | — |
 
-Threading note: for the pairwise distance correlation function benchmarked here, the Python baseline does not provide a parallel pairwise path (it has a `COMPILE_PARALLEL` mode for rowwise APIs, not this pairwise API), and the C++ baseline uses OpenMP only for matrix APIs, not pairwise vectors. As a result, multicore and single-core timings are nearly identical for both baselines in this benchmark.
+
+**Note:** For larger vectors (`2^15`, `2^18`), the `distance-correlation` package was not included as computation times were prohibitively long.
+
+#### Multicore benchmark (`BENCH_NUM_THREADS=8`)
+
+| n | dist_corr (us) | dcor (us) | distance-correlation (us) | 
+|:---:|:----------------------:|:----------------:|:----------------:|
+| 2^8  | 21.0255 | 130.8422 | 892.0175 |
+| 2^10 | 96.8443 | 675.7882 | 26054.2335 |
+| 2^12 | 481.3296 | 3697.2850 | 556570.9167 |
+| 2^13 | 820.8551 | 7604.7632 | 2232343.1250 |
+| 2^15 | 2457.3722 | 51508.1041 | |
+| 2^18 | 18468.3482 | 1510708.0500 | |
+
+**Threading note:** The `dcor` package does not provide a parallel implementation for pairwise distance correlation (its `COMPILE_PARALLEL` mode only supports row-wise APIs), and the `distance-correlation` package uses OpenMP only for matrix operations, not for pairwise vectors. Consequently, multicore and single-core timings are nearly identical for both baseline implementations in this benchmark.
 
 
 ## Error handling
