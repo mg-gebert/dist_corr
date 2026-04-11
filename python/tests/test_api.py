@@ -16,7 +16,7 @@ def test_distance_covariance_independent_binary() -> None:
     v1 = np.array([0.0, 0.0, 1.0, 1.0], dtype=np.float64)
     v2 = np.array([0.0, 1.0, 1.0, 0.0], dtype=np.float64)
 
-    cov = dist_corr.distance_covariance(v1, v2)
+    cov = dist_corr.distance_covariance(v1, v2, True, True)
     assert cov == pytest.approx(0.0, abs=1e-12)
 
 
