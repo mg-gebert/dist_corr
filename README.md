@@ -59,12 +59,8 @@ Python bindings are supported via the `dist_corr` package.
 
 Install from PyPI:
 
-Build and install locally from source:
-
 ```bash
-cd python
-poetry install
-poetry run maturin develop --release
+pip install dist-corr
 ```
 
 ## Quickstart
