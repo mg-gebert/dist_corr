@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "dist-corr"
-version = "0.1.1"
+version = "0.1.1.dev1"
 description = "Python bindings for the dist_corr Rust library"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,20 +12,22 @@ dependencies = [
   "numpy>=1.26",
 ]
 
+[project.urls]
+Homepage = "https://github.com/mg-gebert/dist_corr"
+Repository = "https://github.com/mg-gebert/dist_corr"
+Documentation = "https://github.com/mg-gebert/dist_corr/blob/master/README.md"
+
 [tool.maturin]
 python-source = "."
 module-name = "dist_corr._rust"
 
 [tool.poetry]
-name = "dist-corr"
-version = "0.1.1"
-description = "Python bindings for the dist_corr Rust library"
-authors = []
 package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = ">=1.26"
+twine = "^6.2.0"
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^1.7"
