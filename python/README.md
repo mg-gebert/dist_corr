@@ -1,38 +1,10 @@
 # dist-corr Python bindings
 
-Python bindings for the Rust `dist_corr` library, providing fast computation of **distance correlation**, **distance covariance**, and **distance variance** between pairs of numeric vectors in $\mathbb{R}^n$, with optimized implementations for binary (0/1) data.
+Python bindings for the Rust `dist_corr` library, providing fast computation of **distance correlation**, **distance covariance**, and **distance variance** between pairs of numeric vectors in R^n, with optimized implementations for binary (0/1) data.
 
-## Definition
+## Mathematical definition
 
-- **Distance covariance**: a measure of dependence between two random vectors. It is the square root of the average product of centered distances and is always non-negative. Distance covariance is zero if and only if the vectors are independent. More precisely:
-
-  For two vectors $v = (v_1, \ldots, v_n) \in \mathbb{R}^n$ and $w = (w_1, \ldots, w_n) \in \mathbb{R}^n$, the distance covariance is defined by:
-
-$$
-\text{dCov}^2(v,w) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n A_{ij} B_{ij}
-$$
-
-  where for $i,j = 1,\ldots,n$:
-
-$$
-A_{ij} = |v_i - v_j| - \frac{1}{n} \sum_{i=1}^n |v_i - v_j| - \frac{1}{n}\sum_{j=1}^n |v_i - v_j| + \frac{1}{n^2}\sum_{i=1}^n\sum_{j=1}^n |v_i - v_j|
-$$
-
-  and $B_{ij}$ is defined similarly using $w$.
-
-- **Distance correlation**: a dependence measure between two random vectors that is zero if and only if the vectors are independent. Returns a value in [0, 1]. More precisely:
-
-$$
-\text{dCorr}(v,w) = \frac{\text{dCov}(v,w)}{\text{dCov}(v,v)^{1/2}\text{dCov}(w,w)^{1/2}} \geq 0.
-$$
-
-We note that $\text{dCov}^2(v,w) \geq 0$ and dCov is its non-negative square root. 
-
-- **Distance variance**: Distance covariance of a vector with itself. 
-
-$$
-\text{dVar}(v) = \text{dCov}(v,v).
-$$
+For full mathematical definitions and derivations, see the main project [README](https://github.com/mg-gebert/dist_corr/blob/master/README.md#definition).
 
 ## Installation
 
@@ -113,7 +85,7 @@ print(f"Distance variance: {var}")
 
 ## Performance and speed benchmarks
 
-See the [main project README](../README.md) for detailed benchmarks comparing this package to other Python and Rust implementations.
+See the main project README for detailed [benchmarks](https://github.com/mg-gebert/dist_corr/blob/master/README.md#performance-and-speed-benchmarks) comparing this package to other Python and Rust implementations.
 
 ## Error handling
 
@@ -124,5 +96,3 @@ All public compute functions return errors for common conditions:
 - A vector is declared binary (flag set) but contains other values
 
 Check the returned error and propagate or handle as needed.
-
-

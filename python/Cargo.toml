@@ -1,7 +1,11 @@
 [package]
 name = "dist_corr_python"
-version = "0.1.1"
+version = "0.1.1-dev.1"
 edition = "2021"
+description = "Python bindings for the dist_corr Rust library"
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/mg-gebert/dist_corr"
 
 [lib]
 name = "_rust"

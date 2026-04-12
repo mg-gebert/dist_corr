@@ -44,7 +44,7 @@ dependencies = [
 
 [[package]]
 name = "dist_corr_python"
-version = "0.1.1"
+version = "0.1.1-dev.1"
 dependencies = [
  "dist_corr",
  "numpy",
