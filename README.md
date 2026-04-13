@@ -265,8 +265,8 @@ For comparability, all implementations are called on the same 1D `float64` vecto
 | 2^10 | 95.6596 | 678.3898 | 25964.4265 |
 | 2^12 | 511.8610 | 3739.8972 | 553456.6375 |
 | 2^13 | 1123.6268 | 7661.6776 | 2237482.4792 |
-| 2^15 | 5131.6849 | 51446.8521 | — |
-| 2^18 | 48527.9500 | 1510864.4750 | — |
+| 2^15 | 5131.6849 | 51446.8521 | N/A |
+| 2^18 | 48527.9500 | 1510864.4750 | N/A |
 
 
 **Note:** For larger vectors (`2^15`, `2^18`), the `distance-correlation` package was not included as computation times were prohibitively long.
@@ -279,8 +279,8 @@ For comparability, all implementations are called on the same 1D `float64` vecto
 | 2^10 | 96.8443 | 675.7882 | 26054.2335 |
 | 2^12 | 481.3296 | 3697.2850 | 556570.9167 |
 | 2^13 | 820.8551 | 7604.7632 | 2232343.1250 |
-| 2^15 | 2457.3722 | 51508.1041 | |
-| 2^18 | 18468.3482 | 1510708.0500 | |
+| 2^15 | 2457.3722 | 51508.1041 | N/A |
+| 2^18 | 18468.3482 | 1510708.0500 | N/A |
 
 **Threading note:** The `dcor` package does not provide a parallel implementation for pairwise distance correlation (its `COMPILE_PARALLEL` mode only supports row-wise APIs), and the `distance-correlation` package uses OpenMP only for matrix operations, not for pairwise vectors. Consequently, multicore and single-core timings are nearly identical for both baseline implementations in this benchmark.
 
