@@ -27,6 +27,19 @@ struct Csum {
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
+/// computes the frobenius inner product of the distance matrices, in parallel
+///
+/// D_v1 = |v1_i - v1_j|_ij and D_v2 = |v2_i - v2_j|_ij
+///
+/// which is
+///
+/// tr D_v1 D_v2
+///
+/// Important: v2 needs to be ordered increasingly
+pub fn par_compute_frobenius_inner_product(v1: &[f64], v2: &[f64], len: usize) -> f64 {
+    __compute_frobenius_inner_product::<true>(v1, v2, len)
+}
+
 /// computes the frobenius inner product of the distance matrices
 ///
 /// D_v1 = |v1_i - v1_j|_ij and D_v2 = |v2_i - v2_j|_ij
@@ -37,6 +50,62 @@ struct Csum {
 ///
 /// Important: v2 needs to be ordered increasingly
 pub fn compute_frobenius_inner_product(v1: &[f64], v2: &[f64], len: usize) -> f64 {
+    __compute_frobenius_inner_product::<false>(v1, v2, len)
+}
+
+pub fn __compute_frobenius_inner_product<const PARALLEL: bool>(v1: &[f64], v2: &[f64], len: usize) -> f64 {
+
+    if !PARALLEL {
+
+        let mut idxs_before: Vec<usize> = (0..len).collect();
+        let mut idxs_after: Vec<usize> = vec![0; len];
+
+        let mut ivs = vec![Iv::default(); len];
+        let mut csums = vec![Csum::default(); len + 1];
+
+        idxs_before
+            .chunks_mut(len)
+            .zip(idxs_after.chunks_mut(len))
+            .zip(ivs.chunks_mut(len))
+            .zip(csums.chunks_mut(len + 1))
+            .enumerate()
+            .for_each(
+                |(j, (((idxs_before_chunk, idxs_after_chunk), ivs_chunk), csums_chunk))| {
+                    perform_loop(
+                        v1,
+                        v2,
+                        idxs_before_chunk,
+                        idxs_after_chunk,
+                        ivs_chunk.len(),
+                        &mut 1,
+                        j,
+                        csums_chunk,
+                        ivs_chunk,
+                    );
+                },
+            );
+
+        perform_loop(
+            v1,
+            v2,
+            &mut idxs_before,
+            &mut idxs_after,
+            len,
+            &mut 1,
+            0,
+            &mut csums[..len + 1],
+            &mut ivs,
+        );
+
+        let cov_term = len as f64 * csums[len].xy - csums[len].x * csums[len].y;
+
+        let sum = izip!(ivs, v1, v2)
+            .map(|(iv, s0, s1)| 4.0 * (iv.num as f64 * s0 * s1 + iv.xy - iv.x * s0 - iv.y * s1))
+            .sum::<f64>();
+
+        return sum - 2.0 * cov_term
+    }
+
     // initialize indices
     let mut idxs_before: Vec<usize> = (0..len).collect();
     let mut idxs_after: Vec<usize> = vec![0; len];

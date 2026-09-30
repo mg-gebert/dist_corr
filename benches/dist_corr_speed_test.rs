@@ -31,7 +31,7 @@ fn dist_corr_small(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.compute(&v1, &v2));
+                    b.iter(|| dist_corr.par_compute(&v1, &v2));
                 });
             },
         );
@@ -57,7 +57,7 @@ fn dist_corr_little(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.compute(&v1, &v2));
+                    b.iter(|| dist_corr.par_compute(&v1, &v2));
                 });
             },
         );
@@ -83,7 +83,7 @@ fn dist_corr_medium(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.compute(&v1, &v2));
+                    b.iter(|| dist_corr.par_compute(&v1, &v2));
                 });
             },
         );
@@ -109,7 +109,7 @@ fn dist_corr_big(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.compute(&v1, &v2));
+                    b.iter(|| dist_corr.par_compute(&v1, &v2));
                 });
             },
         );

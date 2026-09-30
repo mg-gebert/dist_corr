@@ -6,15 +6,23 @@ use log::debug;
 use rayon::prelude::*;
 
 use crate::error::Error;
-use crate::frob_inner_product::compute_frobenius_inner_product;
+use crate::frob_inner_product::{compute_frobenius_inner_product, par_compute_frobenius_inner_product};
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Implementation
 
-/// computes distance correlation of vectors v1 and v2
+/// computes distance correlation of vectors v1 and v2, in parallel
+pub(crate) fn par_dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
+    __dist_corr::<true>(v1, v2)
+}
+
 pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
+    __dist_corr::<false>(v1, v2)
+}
+
+pub(crate) fn __dist_corr<const PARALLEL: bool>(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
@@ -35,7 +43,11 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     if dist_var_v1 > 0.0 && dist_var_v2 > 0.0 {
         // compute distance covariance
         let dist_cov_v1_v2 =
-            dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt();
+            if PARALLEL {
+                par_dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt()
+            } else {
+                dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt()
+            };
 
         Ok(dist_cov_v1_v2 / (dist_var_v1 * dist_var_v2).sqrt())
     } else {
@@ -43,8 +55,17 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     }
 }
 
+/// computes distance covariance of vectors v1 and v2, in parallel
+pub(crate) fn par_dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
+    __dist_cov::<true>(v1, v2)
+}
+
 /// computes distance covariance of vectors v1 and v2
 pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
+    __dist_cov::<false>(v1, v2)
+}
+
+pub(crate) fn __dist_cov<const PARALLEL: bool>(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
@@ -58,21 +79,49 @@ pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let grand_means_v1 = GrandMeans::new(&v1_per).compute_unordered(order_v1_per.as_ref().unwrap());
     let grand_means_v2 = GrandMeans::new(&v2_ord).compute_ordered();
 
-    Ok(dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt())
+    if PARALLEL {
+        Ok(par_dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt())
+    } else {
+        Ok(dist_cov_sq_helper(&v1_per, &v2_ord, &grand_means_v1, &grand_means_v2, len).sqrt())
+    }
+}
+
+/// computes dVar(v), in parallel
+pub(crate) fn par_dist_var(v: &[f64]) -> f64 {
+    __dist_var::<true>(v)
 }
 
 /// computes dVar(v)
 pub(crate) fn dist_var(v: &[f64]) -> f64 {
+    __dist_var::<false>(v)
+}
+
+fn __dist_var<const PARALLEL: bool>(v: &[f64]) -> f64 {
     let len = v.len();
 
     // sort v
     let mut v_ord = v.to_vec();
-    v_ord.par_sort_unstable_by(|v_i, v_j| v_i.partial_cmp(v_j).unwrap());
+    if PARALLEL {
+        v_ord.par_sort_unstable_by(|v_i, v_j| v_i.partial_cmp(v_j).unwrap());
+    } else {
+        v_ord.sort_unstable_by(|v_i, v_j| v_i.partial_cmp(v_j).unwrap());
+    }
 
     // compute grand means
     let grand_means_v = GrandMeans::new(&v_ord).compute_ordered();
 
-    dist_var_sq_helper(v, &grand_means_v, len as f64).sqrt()
+    dist_var_sq_helper(&v_ord, &grand_means_v, len as f64).sqrt()
+}
+
+/// computes dCov^2 from intermediate input, in parallel
+fn par_dist_cov_sq_helper(
+    v1: &[f64],
+    v2: &[f64],
+    grand_mean_v1: &[f64],
+    grand_mean_v2: &[f64],
+    len: usize,
+) -> f64 {
+    __dist_cov_sq_helper::<true>(v1, v2, grand_mean_v1, grand_mean_v2, len)
 }
 
 /// computes dCov^2 from intermediate input
@@ -83,8 +132,22 @@ fn dist_cov_sq_helper(
     grand_mean_v2: &[f64],
     len: usize,
 ) -> f64 {
+    __dist_cov_sq_helper::<false>(v1, v2, grand_mean_v1, grand_mean_v2, len)
+}
+
+fn __dist_cov_sq_helper<const PARALLEL: bool>(
+    v1: &[f64],
+    v2: &[f64],
+    grand_mean_v1: &[f64],
+    grand_mean_v2: &[f64],
+    len: usize,
+) -> f64 {
     // frobenius inner product of distance matrices corresponding to v1 and v2
-    let frob_prod_dist_mat = compute_frobenius_inner_product(v1, v2, len);
+    let frob_prod_dist_mat = if PARALLEL {
+        par_compute_frobenius_inner_product(v1, v2, len)
+    } else {
+        compute_frobenius_inner_product(v1, v2, len)
+    };
 
     // dot product of the grand means of the distance matrices corresponding to v1 and v2
     let dot_prod_grand_means = izip!(grand_mean_v1, grand_mean_v2)

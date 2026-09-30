@@ -24,11 +24,11 @@ fn one_binary_standard(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.compute(&v1, &v2)
+            dist_corr.par_compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.compute(&v1, &v2));
+            b.iter(|| dist_corr.par_compute(&v1, &v2));
         });
     }
 }
@@ -46,11 +46,11 @@ fn one_binary_semi_binary(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.compute_binary(&v1, &v2, false, true)
+            dist_corr.par_compute_binary(&v1, &v2, false, true)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
+            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
         });
     }
 }
@@ -84,11 +84,11 @@ fn both_binary_standard(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.compute(&v1, &v2)
+            dist_corr.par_compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.compute(&v1, &v2));
+            b.iter(|| dist_corr.par_compute(&v1, &v2));
         });
     }
 }
@@ -105,11 +105,11 @@ fn both_binary_semi_binary(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.compute(&v1, &v2)
+            dist_corr.par_compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
+            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
         });
     }
 }
@@ -126,11 +126,11 @@ fn both_binary_full_binary(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.compute(&v1, &v2)
+            dist_corr.par_compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.compute_binary(&v1, &v2, true, true));
+            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, true, true));
         });
     }
 }

@@ -19,11 +19,11 @@ fn dist_corr_small(c: &mut Criterion) {
     println!(
         "n: {:} - dist_corr: {:?}",
         1024,
-        dist_corr.compute(&v1, &v2)
+        dist_corr.par_compute(&v1, &v2)
     );
 
     group.bench_function("Small", |b| {
-        b.iter(|| dist_corr.compute(&v1, &v2));
+        b.iter(|| dist_corr.par_compute(&v1, &v2));
     });
 }
 
@@ -37,11 +37,11 @@ fn dist_corr_little(c: &mut Criterion) {
     println!(
         "n: {:} - dist_corr: {:?}",
         8013,
-        dist_corr.compute(&v1, &v2)
+        dist_corr.par_compute(&v1, &v2)
     );
 
     group.bench_function("Little", |b| {
-        b.iter(|| dist_corr.compute(&v1, &v2));
+        b.iter(|| dist_corr.par_compute(&v1, &v2));
     });
 }
 
@@ -55,11 +55,11 @@ fn dist_corr_medium(c: &mut Criterion) {
     println!(
         "n: {:} - dist_corr: {:?}",
         2_u64.pow(15),
-        dist_corr.compute(&v1, &v2)
+        dist_corr.par_compute(&v1, &v2)
     );
 
     group.bench_function("Medium", |b| {
-        b.iter(|| dist_corr.compute(&v1, &v2));
+        b.iter(|| dist_corr.par_compute(&v1, &v2));
     });
 }
 
@@ -77,7 +77,7 @@ fn dist_corr_big(c: &mut Criterion) {
     );
 
     group.bench_function("Big", |b| {
-        b.iter(|| dist_corr.compute(&v1, &v2));
+        b.iter(|| dist_corr.par_compute(&v1, &v2));
     });
 }
 
