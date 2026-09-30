@@ -2,8 +2,8 @@
 // Using
 
 use itertools::izip;
-use std::error::Error;
 
+use crate::api::err::Error;
 use crate::dist_corr::dist_var_sq_helper;
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
@@ -12,19 +12,19 @@ use crate::ordering::Ordering;
 // Implementation
 
 // v1 and v2 must be 0-1-valued
-pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let (n00, n01, n10, n11) = izip!(v1, v2).try_fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
-            (0.0, 0.0) => Ok::<(f64, f64, f64, f64), Box<dyn Error>>((n00 + 1.0, n01, n10, n11)),
+            (0.0, 0.0) => Ok((n00 + 1.0, n01, n10, n11)),
             (0.0, 1.0) => Ok((n00, n01 + 1.0, n10, n11)),
             (1.0, 0.0) => Ok((n00, n01, n10 + 1.0, n11)),
             (1.0, 1.0) => Ok((n00, n01, n10, n11 + 1.0)),
-            (_, _) => Err("v1 and v2 must be binary (only 0.0 or 1.0)".into()),
+            (_, _) => Err(Error::VectorNotBinary),
         },
     )?;
 
-    let denominator: f64 = ((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10)).sqrt();
+    let denominator: f64 = f64::sqrt((n11 + n10) * (n11 + n01) * (n00 + n01) * (n00 + n10));
 
     if denominator > 0.0 {
         let numerator: f64 = n11 * n00 - n10 * n01;
@@ -35,7 +35,7 @@ pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<d
 }
 
 /// v1 must be 0-1-valued
-pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len() as f64;
 
     // sort v1,v2 with respect to ordering of v2
@@ -80,23 +80,23 @@ pub(crate) fn dist_corr_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dy
 }
 
 /// v1 and v2 must be a 0-1-valued
-pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let (n00, n01, n10, n11) = izip!(v1, v2).try_fold(
         (0.0, 0.0, 0.0, 0.0),
         |(n00, n01, n10, n11), (&a, &b)| match (a, b) {
-            (0.0, 0.0) => Ok::<(f64, f64, f64, f64), Box<dyn Error>>((n00 + 1.0, n01, n10, n11)),
+            (0.0, 0.0) => Ok((n00 + 1.0, n01, n10, n11)),
             (0.0, 1.0) => Ok((n00, n01 + 1.0, n10, n11)),
             (1.0, 0.0) => Ok((n00, n01, n10 + 1.0, n11)),
             (1.0, 1.0) => Ok((n00, n01, n10, n11 + 1.0)),
-            (_, _) => Err("v1 and v2 must be binary (only 0.0 or 1.0)".into()),
+            (_, _) => Err(Error::VectorNotBinary)
         },
     )?;
 
-    Ok(2.0 * (n11 * n00 - n10 * n01).abs() / (v1.len() as f64).powi(2))
+    Ok(2.0 * f64::abs(n11 * n00 - n10 * n01) / (v1.len() as f64).powi(2))
 }
 
 /// v1 must be 0-1-valued
-pub(crate) fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_cov_one_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2

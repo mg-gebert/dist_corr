@@ -4,8 +4,8 @@
 use itertools::izip;
 use log::debug;
 use rayon::prelude::*;
-use std::error::Error;
 
+use crate::api::err::Error;
 use crate::frob_inner_product::compute_frobenius_inner_product;
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
@@ -14,7 +14,7 @@ use crate::ordering::Ordering;
 // Implementation
 
 /// computes distance correlation of vectors v1 and v2
-pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
@@ -44,7 +44,7 @@ pub(crate) fn dist_corr(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
 }
 
 /// computes distance covariance of vectors v1 and v2
-pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>> {
+pub(crate) fn dist_cov(v1: &[f64], v2: &[f64]) -> Result<f64, Error> {
     let len = v1.len();
 
     // sort v1,v2 with respect to ordering of v2
