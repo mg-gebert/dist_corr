@@ -126,9 +126,9 @@ fn perform_loop(
             let mut st2 = *idx_start;
 
             let e1_abs = len.min(j + *idx_start);
-            let e1_rel = (e1_abs - j).max(0);
+            let e1_rel = e1_abs - j;
 
-            let e2_rel = (len.min(2 * *idx_start + j) - j).max(0);
+            let e2_rel = len.min(2 * *idx_start + j) - j;
 
             while e1_rel > st1 && e2_rel > st2 {
                 let idx1 = idx_r_j[st1];
