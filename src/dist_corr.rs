@@ -5,7 +5,7 @@ use itertools::izip;
 use log::debug;
 use rayon::prelude::*;
 
-use crate::api::err::Error;
+use crate::error::Error;
 use crate::frob_inner_product::compute_frobenius_inner_product;
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;

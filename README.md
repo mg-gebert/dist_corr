@@ -287,24 +287,32 @@ For comparability, all implementations are called on the same 1D `float64` vecto
 
 ## Error handling
 
-All public compute functions return `Result<f64, Box<dyn std::error::Error>>`. Common error conditions:
+All public compute functions return `Result<f64, dist_corr::Error>`. Its variants:
 
-- Vectors have different lengths: returns error `"Length of v1 and v2 must be identical"`.
-- One or both vectors are empty: returns error `"v1 and v2 must not be empty"` or `"v must not be empty"` for variance.
-- A vector is declared binary (flag set) but contains other values: returns error `"v1 must be binary (only 0.0 or 1.0)"` or equivalent for `v2`.
+- `Error::VectorLengthMismatch`: vectors have different lengths.
+- `Error::VectorEmpty`: one or both vectors are empty, or the vector passed to `compute_var` is empty.
+- `Error::VectorNotBinary(Vector)`: a vector is declared binary (flag set) but contains other values. The payload `dist_corr::error::Vector::V1` or `Vector::V2` identifies the offender.
 
-Check the returned `Err` and propagate or handle as needed.
+```rust
+use dist_corr::{DistCorrelation, Error};
+
+match DistCorrelation.compute(&[1.0, 2.0], &[1.0]) {
+    Ok(corr) => println!("{corr}"),
+    Err(Error::VectorLengthMismatch) => println!("lengths differ"),
+    Err(err) => println!("{err}"),
+}
+```
 
 ## API Reference (summary)
 
 Type: `DistCorrelation`
-- `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>>`
-- `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Box<dyn Error>>`
+- `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Error>`
+- `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Error>`
 
 Type: `DistCovariance`
-- `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Box<dyn Error>>`
-- `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Box<dyn Error>>`
-- `fn compute_var(&self, v: &[f64]) -> Result<f64, Box<dyn Error>>`
+- `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Error>`
+- `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Error>`
+- `fn compute_var(&self, v: &[f64]) -> Result<f64, Error>`
 
 (See the crate docs or source for more implementation details and exact behaviour.)
 

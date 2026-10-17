@@ -1,41 +1,11 @@
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
-// Modules
-pub mod err
-{
-
-  /// Error type for computations.
-  #[derive(Debug)]
-  pub enum Error
-  {
-    VectorLengthMismatch,
-    VectorNotBinary,
-    VectorEmpty
-  }
-
-  impl std::fmt::Display for Error
-  {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
-    {
-      match self
-      {
-        Error::VectorLengthMismatch => write!(f, "Vector lengths must be identical"),
-        Error::VectorNotBinary => write!(f, "Vector must be binary (only 0.0 or 1.0)"),
-        Error::VectorEmpty => write!(f, "Vector must not be empty"),
-      }
-    }
-  }
-
-  impl std::error::Error for Error {}
-}
-
-// +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Using
 
-use crate::api::err::Error;
 use crate::dist_corr::{dist_corr, dist_cov, dist_var};
 use crate::dist_corr_binary::{
     dist_corr_both_binary, dist_corr_one_binary, dist_cov_both_binary, dist_cov_one_binary,
 };
+use crate::error::{Error, Vector};
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // API Calls
@@ -142,14 +112,14 @@ impl DistCorrelation {
             (true, true) => dist_corr_both_binary(v1, v2),
             (true, false) => {
                 if !v1.iter().all(|&x| x == 0.0 || x == 1.0) {
-                    return Err(Error::VectorNotBinary);
+                    return Err(Error::VectorNotBinary(Vector::V1));
                 } else {
                     dist_corr_one_binary(v1, v2)
                 }
             }
             (false, true) => {
                 if !v2.iter().all(|&x| x == 0.0 || x == 1.0) {
-                    return Err(Error::VectorNotBinary);
+                    return Err(Error::VectorNotBinary(Vector::V2));
                 } else {
                     dist_corr_one_binary(v2, v1)
                 }
@@ -245,13 +215,13 @@ impl DistCovariance {
             (true, true) => dist_cov_both_binary(v1, v2),
             (true, false) => {
                 if v1_binary && !v1.iter().all(|&x| x == 0.0 || x == 1.0) {
-                    return Err(Error::VectorNotBinary);
+                    return Err(Error::VectorNotBinary(Vector::V1));
                 };
                 dist_cov_one_binary(v1, v2)
             }
             (false, true) => {
                 if v2_binary && !v2.iter().all(|&x| x == 0.0 || x == 1.0) {
-                    return Err(Error::VectorNotBinary);
+                    return Err(Error::VectorNotBinary(Vector::V2));
                 };
                 dist_cov_one_binary(v2, v1)
             }

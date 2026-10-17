@@ -3,8 +3,8 @@
 
 use itertools::izip;
 
-use crate::api::err::Error;
 use crate::dist_corr::dist_var_sq_helper;
+use crate::error::{Error, Vector};
 use crate::grand_mean::GrandMeans;
 use crate::ordering::Ordering;
 
@@ -20,7 +20,8 @@ pub(crate) fn dist_corr_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error
             (0.0, 1.0) => Ok((n00, n01 + 1.0, n10, n11)),
             (1.0, 0.0) => Ok((n00, n01, n10 + 1.0, n11)),
             (1.0, 1.0) => Ok((n00, n01, n10, n11 + 1.0)),
-            (_, _) => Err(Error::VectorNotBinary),
+            (0.0 | 1.0, _) => Err(Error::VectorNotBinary(Vector::V2)),
+            (_, _) => Err(Error::VectorNotBinary(Vector::V1)),
         },
     )?;
 
@@ -88,7 +89,8 @@ pub(crate) fn dist_cov_both_binary(v1: &[f64], v2: &[f64]) -> Result<f64, Error>
             (0.0, 1.0) => Ok((n00, n01 + 1.0, n10, n11)),
             (1.0, 0.0) => Ok((n00, n01, n10 + 1.0, n11)),
             (1.0, 1.0) => Ok((n00, n01, n10, n11 + 1.0)),
-            (_, _) => Err(Error::VectorNotBinary)
+            (0.0 | 1.0, _) => Err(Error::VectorNotBinary(Vector::V2)),
+            (_, _) => Err(Error::VectorNotBinary(Vector::V1)),
         },
     )?;
 

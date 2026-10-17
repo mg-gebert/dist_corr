@@ -113,6 +113,25 @@
 //!        })
 //!        .collect();
 //! ```
+//!
+//! ### Error Handling
+//!
+//! All compute methods return [`Result<f64, Error>`](Error). The variants are
+//! [`Error::VectorLengthMismatch`], [`Error::VectorEmpty`] and
+//! [`Error::VectorNotBinary`].
+//!
+//! ```rust
+//! use dist_corr::{DistCorrelation, Error};
+//! use dist_corr::error::Vector;
+//!
+//! let dist_corr = DistCorrelation;
+//!
+//! assert_eq!(dist_corr.compute(&[1.0, 2.0], &[1.0]), Err(Error::VectorLengthMismatch));
+//! assert_eq!(
+//!     dist_corr.compute_binary(&[0.0, 2.0], &[1.0, 3.0], true, false),
+//!     Err(Error::VectorNotBinary(Vector::V1))
+//! );
+//! ```
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // Modules
@@ -122,6 +141,7 @@ pub(crate) mod dist_corr;
 pub(crate) mod dist_corr_binary;
 pub(crate) mod dist_corr_multi;
 pub(crate) mod dist_corr_naive;
+pub mod error;
 pub(crate) mod frob_inner_product;
 pub(crate) mod grand_mean;
 pub(crate) mod ordering;
@@ -134,3 +154,5 @@ pub(crate) mod tests;
 pub use api::DistCorrelation;
 #[doc(inline)]
 pub use api::DistCovariance;
+#[doc(inline)]
+pub use error::Error;
