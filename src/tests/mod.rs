@@ -7,4 +7,4 @@ mod test_determinism;
 #[cfg(test)]
 mod test_multi;
 #[cfg(test)]
-mod test_parallel_against_sequentual;
+mod test_parallel_against_sequential;

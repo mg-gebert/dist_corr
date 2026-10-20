@@ -76,13 +76,26 @@ use dist_corr::{DistCorrelation, DistCovariance};
 let v1 = vec![1.0, 2.0, 3.0];
 let v2 = vec![2.0, 4.0, 6.0];
 
-let dist_corr = DistCorrelation;
+let dist_corr = DistCorrelation::new(false);
 let corr = dist_corr.compute(&v1, &v2).unwrap();
 
 // Distance covariance
-let dist_cov = DistCovariance;
+let dist_cov = DistCovariance::new(false);
 let cov = dist_cov.compute(&v1, &v2).unwrap();
 ```
+
+To compute in parallel on the current rayon thread pool, pass `parallel = true` to `new`:
+
+```rust
+use dist_corr::DistCorrelation;
+
+let v1 = vec![1.0, 2.0, 3.0];
+let v2 = vec![2.0, 4.0, 6.0];
+
+let corr = DistCorrelation::new(true).compute(&v1, &v2).unwrap();
+```
+
+The number of threads is controlled by rayon, e.g. via `RAYON_NUM_THREADS` or a custom `rayon::ThreadPool`.
 
 The implemented algorithm follows the one described in:
 
@@ -103,13 +116,13 @@ let v_bin_1 = vec![0.0, 1.0, 0.0, 1.0];
 let v_bin_2 = vec![0.0, 0.0, 1.0, 1.0];
 let v_real = vec![0.5, 2.0, 1.0, -0.3];
 
-let dist_corr = DistCorrelation;
+let dist_corr = DistCorrelation::new(false);
 // v1 binary, v2 non-binary
 let corr = dist_corr.compute_binary(&v_bin_1, &v_real, true, false).unwrap();
 // v1 and v2 both binary
 let corr_both_bin = dist_corr.compute_binary(&v_bin_1, &v_bin_2, true, true).unwrap();
 
-let dist_cov = DistCovariance;
+let dist_cov = DistCovariance::new(false);
 // v1 non-binary, v2 binary
 let cov_semi_bin = dist_cov.compute_binary(&v_real, &v_bin_1, false, true).unwrap();
 // v1 and v2 both binary
@@ -134,7 +147,7 @@ For the special case of computing the distance variance of a single vector, use 
 use dist_corr::DistCovariance;
 
 let v = vec![1.0, 0.0, 1.0];
-let dist_var = DistCovariance;
+let dist_var = DistCovariance::new(false);
 let var = dist_var.compute_var(&v).unwrap();
 ```
 
@@ -150,7 +163,7 @@ The implementation of the above is considerably faster than calling `DistCovaria
  let list_1 = [[0.1, 1.0, 2.0, 1.0], [0.0,-1.0,1.0,2.0]];
  let list_2 = [[-0.1, 1.0, -2.0, 1.0], [0.0,1.0,1.0,2.0]];
 
- let dist_cov = DistCovariance;
+ let dist_cov = DistCovariance::new(false);
 
  //compute distance variances for each list
  //note that (.compute_var(&v) is faster than calling .compute(&v,&v) )
@@ -296,7 +309,7 @@ All public compute functions return `Result<f64, dist_corr::Error>`. Its variant
 ```rust
 use dist_corr::{DistCorrelation, Error};
 
-match DistCorrelation.compute(&[1.0, 2.0], &[1.0]) {
+match DistCorrelation::new(false).compute(&[1.0, 2.0], &[1.0]) {
     Ok(corr) => println!("{corr}"),
     Err(Error::VectorLengthMismatch) => println!("lengths differ"),
     Err(err) => println!("{err}"),
@@ -306,10 +319,12 @@ match DistCorrelation.compute(&[1.0, 2.0], &[1.0]) {
 ## API Reference (summary)
 
 Type: `DistCorrelation`
+- `fn new(parallel: bool) -> Self` (`true`: parallel on the current rayon thread pool, `false`: sequential)
 - `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Error>`
 - `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Error>`
 
 Type: `DistCovariance`
+- `fn new(parallel: bool) -> Self` (`true`: parallel on the current rayon thread pool, `false`: sequential)
 - `fn compute(&self, v1: &[f64], v2: &[f64]) -> Result<f64, Error>`
 - `fn compute_binary(&self, v1: &[f64], v2: &[f64], v1_binary: bool, v2_binary: bool) -> Result<f64, Error>`
 - `fn compute_var(&self, v: &[f64]) -> Result<f64, Error>`

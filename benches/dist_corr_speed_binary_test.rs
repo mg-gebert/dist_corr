@@ -18,7 +18,7 @@ fn dist_corr_small(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Small");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -31,7 +31,7 @@ fn dist_corr_small(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
+                    b.iter(|| dist_corr.compute(&v1, &v2));
                 });
             },
         );
@@ -44,7 +44,7 @@ fn dist_corr_small_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Small binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -57,7 +57,7 @@ fn dist_corr_small_binary(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
+                    b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
                 });
             },
         );
@@ -74,7 +74,7 @@ fn dist_corr_medium(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Medium");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -87,7 +87,7 @@ fn dist_corr_medium(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
+                    b.iter(|| dist_corr.compute(&v1, &v2));
                 });
             },
         );
@@ -104,7 +104,7 @@ fn dist_corr_medium_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Medium binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -117,7 +117,7 @@ fn dist_corr_medium_binary(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
+                    b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
                 });
             },
         );
@@ -134,7 +134,7 @@ fn dist_corr_big(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Big");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -147,7 +147,7 @@ fn dist_corr_big(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
+                    b.iter(|| dist_corr.compute(&v1, &v2));
                 });
             },
         );
@@ -164,7 +164,7 @@ fn dist_corr_big_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Big binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &threads in &thread_counts {
         let pool = ThreadPoolBuilder::new()
@@ -177,7 +177,7 @@ fn dist_corr_big_binary(c: &mut Criterion) {
             &threads,
             |b, &_threads| {
                 pool.install(|| {
-                    b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
+                    b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
                 });
             },
         );

@@ -16,7 +16,7 @@ fn one_binary_standard(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("one-binary-standard");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &exp in &sample_size_exp {
         let (v1, v2) =
@@ -24,11 +24,11 @@ fn one_binary_standard(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.par_compute(&v1, &v2)
+            dist_corr.compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.par_compute(&v1, &v2));
+            b.iter(|| dist_corr.compute(&v1, &v2));
         });
     }
 }
@@ -38,7 +38,7 @@ fn one_binary_semi_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("one-binary-semi-binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &exp in &sample_size_exp {
         let (v1, v2) =
@@ -46,11 +46,11 @@ fn one_binary_semi_binary(c: &mut Criterion) {
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.par_compute_binary(&v1, &v2, false, true)
+            dist_corr.compute_binary(&v1, &v2, false, true)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
+            b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
         });
     }
 }
@@ -77,18 +77,18 @@ fn both_binary_standard(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("both-binary-standard");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &exp in &sample_size_exp {
         let (v1, v2) = samples_random_two_binary(2_usize.pow(exp), 76);
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.par_compute(&v1, &v2)
+            dist_corr.compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.par_compute(&v1, &v2));
+            b.iter(|| dist_corr.compute(&v1, &v2));
         });
     }
 }
@@ -98,18 +98,18 @@ fn both_binary_semi_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("both-binary-semi-binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &exp in &sample_size_exp {
         let (v1, v2) = samples_random_two_binary(2_usize.pow(exp), 76);
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.par_compute(&v1, &v2)
+            dist_corr.compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, false, true));
+            b.iter(|| dist_corr.compute_binary(&v1, &v2, false, true));
         });
     }
 }
@@ -119,18 +119,18 @@ fn both_binary_full_binary(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("both-binary-full-binary");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     for &exp in &sample_size_exp {
         let (v1, v2) = samples_random_two_binary(2_usize.pow(exp), 76);
         println!(
             "Exp: {:?} - dist corr: {:?}",
             exp,
-            dist_corr.par_compute(&v1, &v2)
+            dist_corr.compute(&v1, &v2)
         );
 
         group.bench_with_input(BenchmarkId::new("Exponent", exp), &exp, |b, &_exp| {
-            b.iter(|| dist_corr.par_compute_binary(&v1, &v2, true, true));
+            b.iter(|| dist_corr.compute_binary(&v1, &v2, true, true));
         });
     }
 }

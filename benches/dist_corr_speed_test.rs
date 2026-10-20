@@ -13,106 +13,138 @@ use dist_corr::DistCorrelation;
 // Bench
 
 fn dist_corr_small(c: &mut Criterion) {
-    let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
+    let thread_counts = [0, 1, 2, 4, 8, 16]; // 0 = sequential baseline
     let (v1, v2) = samples_random(1024, 76, |x| x * x);
 
     let mut group = c.benchmark_group("Small");
 
-    let dist_corr = DistCorrelation;
-
     for &threads in &thread_counts {
-        let pool = ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .unwrap();
-
-        group.bench_with_input(
-            BenchmarkId::new("Threads", threads),
-            &threads,
-            |b, &_threads| {
-                pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
-                });
-            },
-        );
+        // threads = 0 means parallel = false
+        if threads == 0 {
+            let dist_corr = DistCorrelation::new(false);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| b.iter(|| dist_corr.compute(&v1, &v2)),
+            );
+        } else {
+            let pool = ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let dist_corr = DistCorrelation::new(true);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| {
+                    pool.install(|| {
+                        b.iter(|| dist_corr.compute(&v1, &v2));
+                    });
+                },
+            );
+        }
     }
 }
 
 fn dist_corr_little(c: &mut Criterion) {
-    let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
+    let thread_counts = [0, 1, 2, 4, 8, 16]; // 0 = sequential baseline
     let (v1, v2) = samples_random(8013, 76, |x| x * x);
 
     let mut group = c.benchmark_group("Little");
 
-    let dist_corr = DistCorrelation;
-
     for &threads in &thread_counts {
-        let pool = ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .unwrap();
-
-        group.bench_with_input(
-            BenchmarkId::new("Threads", threads),
-            &threads,
-            |b, &_threads| {
-                pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
-                });
-            },
-        );
+        // threads = 0 means parallel = false
+        if threads == 0 {
+            let dist_corr = DistCorrelation::new(false);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| b.iter(|| dist_corr.compute(&v1, &v2)),
+            );
+        } else {
+            let pool = ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let dist_corr = DistCorrelation::new(true);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| {
+                    pool.install(|| {
+                        b.iter(|| dist_corr.compute(&v1, &v2));
+                    });
+                },
+            );
+        }
     }
 }
 
 fn dist_corr_medium(c: &mut Criterion) {
-    let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
+    let thread_counts = [0, 1, 2, 4, 8, 16]; // 0 = sequential baseline
     let (v1, v2) = samples_random(2_u64.pow(15) as usize, 76, |x| x * x);
 
     let mut group = c.benchmark_group("Medium");
 
-    let dist_corr = DistCorrelation;
-
     for &threads in &thread_counts {
-        let pool = ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .unwrap();
-
-        group.bench_with_input(
-            BenchmarkId::new("Threads", threads),
-            &threads,
-            |b, &_threads| {
-                pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
-                });
-            },
-        );
+        // threads = 0 means parallel = false
+        if threads == 0 {
+            let dist_corr = DistCorrelation::new(false);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| b.iter(|| dist_corr.compute(&v1, &v2)),
+            );
+        } else {
+            let pool = ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let dist_corr = DistCorrelation::new(true);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| {
+                    pool.install(|| {
+                        b.iter(|| dist_corr.compute(&v1, &v2));
+                    });
+                },
+            );
+        }
     }
 }
 
 fn dist_corr_big(c: &mut Criterion) {
-    let thread_counts = [1, 2, 4, 8, 16]; // Define different thread counts
+    let thread_counts = [0, 1, 2, 4, 8, 16]; // 0 = sequential baseline
     let (v1, v2) = samples_random(2_u64.pow(20) as usize, 76, |x| x * x);
 
     let mut group = c.benchmark_group("Big");
 
-    let dist_corr = DistCorrelation;
-
     for &threads in &thread_counts {
-        let pool = ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .unwrap();
-
-        group.bench_with_input(
-            BenchmarkId::new("Threads", threads),
-            &threads,
-            |b, &_threads| {
-                pool.install(|| {
-                    b.iter(|| dist_corr.par_compute(&v1, &v2));
-                });
-            },
-        );
+        // threads = 0 means parallel = false
+        if threads == 0 {
+            let dist_corr = DistCorrelation::new(false);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| b.iter(|| dist_corr.compute(&v1, &v2)),
+            );
+        } else {
+            let pool = ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let dist_corr = DistCorrelation::new(true);
+            group.bench_with_input(
+                BenchmarkId::new("Threads", threads),
+                &threads,
+                |b, &_threads| {
+                    pool.install(|| {
+                        b.iter(|| dist_corr.compute(&v1, &v2));
+                    });
+                },
+            );
+        }
     }
 }
 

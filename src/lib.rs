@@ -29,12 +29,23 @@
 //! let v1 = vec![1.0, 2.0, 3.0];
 //! let v2 = vec![2.0, 4.0, 6.0];
 //!
-//! let dist_corr = DistCorrelation;
+//! let dist_corr = DistCorrelation::new(false);
 //! let corr = dist_corr.compute(&v1, &v2).unwrap();
 //!
 //! // Distance covariance
-//! let dist_cov = DistCovariance;
+//! let dist_cov = DistCovariance::new(false);
 //! let cov = dist_cov.compute(&v1, &v2).unwrap();
+//! ```
+//!
+//! To compute in parallel on the current rayon thread pool, pass `parallel = true` to `new`:
+//!
+//! ```rust
+//! use dist_corr::DistCorrelation;
+//!
+//! let v1 = vec![1.0, 2.0, 3.0];
+//! let v2 = vec![2.0, 4.0, 6.0];
+//!
+//! let corr = DistCorrelation::new(true).compute(&v1, &v2).unwrap();
 //! ```
 //!
 //! The implemented algorithm follows the one described in:
@@ -56,13 +67,13 @@
 //! let v_bin_2 = vec![0.0, 0.0, 1.0, 1.0];
 //! let v_real = vec![0.5, 2.0, 1.0, -0.3];
 //!
-//! let dist_corr = DistCorrelation;
+//! let dist_corr = DistCorrelation::new(false);
 //! // v1 binary, v2 non-binary
 //! let corr = dist_corr.compute_binary(&v_bin_1, &v_real, true, false).unwrap();
 //! // v1 and v2 both binary
 //! let corr_both_bin = dist_corr.compute_binary(&v_bin_1, &v_bin_2, true, true).unwrap();
 //!
-//! let dist_cov = DistCovariance;
+//! let dist_cov = DistCovariance::new(false);
 //! // v1 non-binary, v2 binary
 //! let cov_semi_bin = dist_cov.compute_binary(&v_real, &v_bin_1, false, true).unwrap();
 //! // v1 and v2 both binary
@@ -88,7 +99,7 @@
 //! let list_1 = [[0.1, 1.0, 2.0, 1.0], [0.0,-1.0,1.0,2.0]];
 //! let list_2 = [[-0.1, 1.0, -2.0, 1.0], [0.0,1.0,1.0,2.0]];
 //!
-//! let dist_cov = DistCovariance;
+//! let dist_cov = DistCovariance::new(false);
 //!
 //! //compute distance variances for each list
 //! //note that (.compute_var(&v) is faster than calling .compute(&v,&v) )
@@ -124,7 +135,7 @@
 //! use dist_corr::{DistCorrelation, Error};
 //! use dist_corr::error::Vector;
 //!
-//! let dist_corr = DistCorrelation;
+//! let dist_corr = DistCorrelation::new(false);
 //!
 //! assert_eq!(dist_corr.compute(&[1.0, 2.0], &[1.0]), Err(Error::VectorLengthMismatch));
 //! assert_eq!(

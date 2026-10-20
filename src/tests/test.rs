@@ -16,8 +16,8 @@ fn independent() {
     let v1: Vec<f64> = vec![0.0, 0.0, 1.0, 1.0];
     let v2: Vec<f64> = vec![0.0, 1.0, 1.0, 0.0];
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(false);
+    let dist_covariance = DistCovariance::new(false);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -55,8 +55,8 @@ fn independent_2() {
         .map(move |_x| rng_2.random_range(-10.0..10.0))
         .collect();
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(false);
+    let dist_covariance = DistCovariance::new(false);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -85,8 +85,8 @@ fn quadratic_relation_simple() {
     let v1: Vec<f64> = vec![1.0, 0.0, -1.0];
     let v2: Vec<f64> = v1.iter().map(|x| x * x).collect();
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(false);
+    let dist_covariance = DistCovariance::new(false);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -118,7 +118,8 @@ fn quadratic_relation() {
     let test_sizes = [2_i32.pow(4), 2_i32.pow(10), 111, 897];
 
     for numb in test_sizes {
-        sub_test(numb as usize, 13, |x| x * x);
+        sub_test(numb as usize, 13, true, |x| x * x);
+        sub_test(numb as usize, 13, false, |x| x * x);
     }
 }
 
@@ -127,7 +128,8 @@ fn sin() {
     let test_sizes = [2_i32.pow(6), 2_i32.pow(11), 121, 597];
 
     for numb in test_sizes {
-        sub_test(numb as usize, 21, |x| x.sin());
+        sub_test(numb as usize, 21, true, |x| x.sin());
+        sub_test(numb as usize, 21, false, |x| x.sin());
     }
 }
 
@@ -136,13 +138,14 @@ fn linear_relation() {
     let test_sizes = [2_i32.pow(14), 2_i32.pow(9), 131, 577];
 
     for numb in test_sizes {
-        sub_test(numb as usize, 21, |x| x * 0.000001 - 0.3);
+        sub_test(numb as usize, 21, true, |x| x * 0.000001 - 0.3);
+        sub_test(numb as usize, 21, false, |x| x * 0.000001 - 0.3);
     }
 }
 
-fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
+fn sub_test(sample_size: usize, seed: u64, parallel: bool, func: fn(&f64) -> f64) {
     println!("------------------------");
-    println!("Sample size: {:?}", sample_size);
+    println!("Sample size: {:?}; parallel: {:?}", sample_size, parallel);
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     let v1: Vec<f64> = (0..sample_size)
         .map(move |_x| rng.random_range(-10.0..10.0))
@@ -150,8 +153,8 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
 
     let v2: Vec<f64> = v1.iter().map(func).collect();
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(parallel);
+    let dist_covariance = DistCovariance::new(parallel);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -170,5 +173,5 @@ fn sub_test(sample_size: usize, seed: u64, func: fn(&f64) -> f64) {
     println!("Dist corr naive: {:?}", dist_corr_naive);
 
     assert!((dist_corr_naive - dist_corr).abs() < 1e-5);
-    assert!((dist_cov - dist_cov_naive) < 1e-10);
+    assert!((dist_cov - dist_cov_naive).abs() < 1e-10);
 }

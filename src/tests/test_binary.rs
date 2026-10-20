@@ -16,7 +16,7 @@ fn simple_binary() {
     let v1: Vec<f64> = vec![0.0, 0.0, 1.0, 1.0];
     let v2: Vec<f64> = vec![0.0, 1.0, 1.0, 0.0];
 
-    let dist_correlation = DistCorrelation;
+    let dist_correlation = DistCorrelation::new(false);
 
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     println!("Dist corr: {:?}", dist_corr);
@@ -52,8 +52,8 @@ fn medium_binary() {
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(false);
+    let dist_covariance = DistCovariance::new(true);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -81,7 +81,7 @@ fn simple_one_binary() {
     let v2: Vec<f64> = vec![0.0, 1.0, 1.0, 0.0];
 
     let tick = Instant::now();
-    let dist_correlation = DistCorrelation;
+    let dist_correlation = DistCorrelation::new(false);
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
     assert!(dist_corr < f64::EPSILON);
 
@@ -120,8 +120,8 @@ fn medium_one_binary() {
         .map(|x| if x < 0.0 { 0.0 } else { 1.0 })
         .collect();
 
-    let dist_correlation = DistCorrelation;
-    let dist_covariance = DistCovariance;
+    let dist_correlation = DistCorrelation::new(true);
+    let dist_covariance = DistCovariance::new(false);
 
     let tick = Instant::now();
     let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
@@ -161,7 +161,7 @@ fn hard_one_binary() {
         .map(|(i, x)| if i % 2 == 0 { *x } else { 0.0 })
         .collect();
 
-    let dist_correlation = DistCorrelation;
+    let dist_correlation = DistCorrelation::new(false);
 
     println!("-------------------------");
     println!("Dist Corr with Frobenius");
@@ -195,7 +195,7 @@ fn hard_one_binary() {
     assert!((dist_corr - dist_corr_one_binary).abs() < 1e-10);
     assert!((dist_corr_one_binary - dist_corr_binary).abs() < 1e-10);
 
-    let distance_covariance = DistCovariance;
+    let distance_covariance = DistCovariance::new(false);
     let dist_cov = distance_covariance.compute(&v1, &v2).unwrap();
     println!("dist_cov: {:?}", dist_cov);
 

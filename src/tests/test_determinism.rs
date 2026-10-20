@@ -23,8 +23,24 @@ fn sin_determinism() {
 
         let v2: Vec<f64> = v1.iter().map(|x| x.sin()).collect();
 
-        let dist_correlation = DistCorrelation;
-        let dist_covariance = DistCovariance;
+        let dist_correlation = DistCorrelation::new(false);
+        let dist_covariance = DistCovariance::new(false);
+
+        let mut dist_corr_prev = dist_correlation.compute(&v1, &v2).unwrap();
+        let mut dist_cov_prev = dist_covariance.compute(&v1, &v2).unwrap();
+        for _i in 0..100 {
+            let dist_corr = dist_correlation.compute(&v1, &v2).unwrap();
+            let dist_cov = dist_covariance.compute(&v1, &v2).unwrap();
+
+            assert!((dist_corr - dist_corr_prev).abs() < f64::EPSILON);
+            assert!((dist_cov - dist_cov_prev).abs() < f64::EPSILON);
+
+            dist_corr_prev = dist_corr;
+            dist_cov_prev = dist_cov;
+        }
+
+        let dist_correlation = DistCorrelation::new(true);
+        let dist_covariance = DistCovariance::new(true);
 
         let mut dist_corr_prev = dist_correlation.compute(&v1, &v2).unwrap();
         let mut dist_cov_prev = dist_covariance.compute(&v1, &v2).unwrap();

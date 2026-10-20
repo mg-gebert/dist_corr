@@ -16,10 +16,10 @@ fn dist_corr_small(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Small");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     group.bench_function("Small", |b| {
-        b.iter(|| dist_corr.par_compute(&v1, &v2));
+        b.iter(|| dist_corr.compute(&v1, &v2));
     });
 }
 
@@ -28,10 +28,10 @@ fn dist_corr_little(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Little");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     group.bench_function("Little", |b| {
-        b.iter(|| dist_corr.par_compute(&v1, &v2));
+        b.iter(|| dist_corr.compute(&v1, &v2));
     });
 }
 
@@ -40,10 +40,10 @@ fn dist_corr_medium(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Medium");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     group.bench_function("Medium", |b| {
-        b.iter(|| dist_corr.par_compute(&v1, &v2));
+        b.iter(|| dist_corr.compute(&v1, &v2));
     });
 }
 
@@ -52,10 +52,10 @@ fn dist_corr_big(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Big");
 
-    let dist_corr = DistCorrelation;
+    let dist_corr = DistCorrelation::new(true);
 
     group.bench_function("Big", |b| {
-        b.iter(|| dist_corr.par_compute(&v1, &v2));
+        b.iter(|| dist_corr.compute(&v1, &v2));
     });
 }
 
