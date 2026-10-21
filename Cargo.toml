@@ -6,6 +6,7 @@ authors = ["Martin Gebert", "Miru Lee"]
 description = "A Rust library for computing distance correlation and related statistics."
 license = "MIT"
 repository = "https://github.com/mg-gebert/dist_corr"
+exclude = [".github/", "*.pdf", "benches/*.json", "benches/*.md", "benches/*.py", "benches/poetry.lock", "benches/pyproject.toml"]
 
 [dependencies]
 itertools = "=0.15.0"
@@ -16,7 +17,6 @@ rayon = "=1.12.0"
 criterion = "=0.8.2"
 rand = "=0.10.3"
 rand_chacha = "0.10.0"
-
 
 #--------------------------------------------------
 # Features
