@@ -11,6 +11,7 @@ def distance_correlation(
     v2: NDArray[np.float64],
     v1_binary: bool = False,
     v2_binary: bool = False,
+    parallel: bool = True,
 ) -> float:
     """Compute the distance correlation between two vectors.
 
@@ -24,6 +25,9 @@ def distance_correlation(
         Flag indicating whether `v1` is binary (contains only 0.0 or 1.0).
     v2_binary : bool, default=False
         Flag indicating whether `v2` is binary (contains only 0.0 or 1.0).
+    parallel : bool, default=True
+        If True, the computation runs in parallel on multiple threads.
+        If False, the main computation runs sequentially.
 
     Returns
     -------
@@ -38,7 +42,7 @@ def distance_correlation(
         If lengths differ, inputs are empty, or a binary-flagged vector contains
         values other than 0.0 or 1.0.
     """
-    return _rust.distance_correlation(v1, v2, v1_binary, v2_binary)
+    return _rust.distance_correlation(v1, v2, v1_binary, v2_binary, parallel)
 
 
 def distance_covariance(
@@ -46,6 +50,7 @@ def distance_covariance(
     v2: NDArray[np.float64],
     v1_binary: bool = False,
     v2_binary: bool = False,
+    parallel: bool = True,
 ) -> float:
     """Compute the distance covariance between two vectors.
 
@@ -59,6 +64,9 @@ def distance_covariance(
         Flag indicating whether `v1` is binary (contains only 0.0 or 1.0).
     v2_binary : bool, default=False
         Flag indicating whether `v2` is binary (contains only 0.0 or 1.0).
+    parallel : bool, default=True
+        If True, the computation runs in parallel on multiple threads.
+        If False, the main computation runs sequentially.
 
     Returns
     -------
@@ -73,16 +81,19 @@ def distance_covariance(
         If lengths differ, inputs are empty, or a binary-flagged vector contains
         values other than 0.0 or 1.0.
     """
-    return _rust.distance_covariance(v1, v2, v1_binary, v2_binary)
+    return _rust.distance_covariance(v1, v2, v1_binary, v2_binary, parallel)
 
 
-def distance_variance(v: NDArray[np.float64]) -> float:
+def distance_variance(v: NDArray[np.float64], parallel: bool = True) -> float:
     """Compute the distance variance of a single vector.
 
     Parameters
     ----------
     v : NDArray[np.float64]
         Input data vector.
+    parallel : bool, default=True
+        If True, the computation runs in parallel on multiple threads.
+        If False, the main computation runs sequentially.
 
     Returns
     -------
@@ -96,7 +107,7 @@ def distance_variance(v: NDArray[np.float64]) -> float:
     ValueError
         If input is empty.
     """
-    return _rust.distance_variance(v)
+    return _rust.distance_variance(v, parallel)
 
 
 __all__ = ["distance_correlation", "distance_covariance", "distance_variance"]

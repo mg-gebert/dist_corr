@@ -83,6 +83,17 @@ var = dist_corr.distance_variance(v)
 print(f"Distance variance: {var}")
 ```
 
+### Parallel computation
+
+All functions take a `parallel` argument. It defaults to `True`, which runs the computation on multiple threads. Pass `parallel=False` to run the main computation sequentially, for example when you already parallelize across many calls yourself:
+
+```python
+corr = dist_corr.distance_correlation(v1, v2, parallel=False)
+var = dist_corr.distance_variance(v, parallel=False)
+```
+
+Both modes return the same result.
+
 ## Performance and speed benchmarks
 
 See the main project README for detailed [benchmarks](https://github.com/mg-gebert/dist_corr/blob/master/README.md#performance-and-speed-benchmarks) comparing this package to other Python and Rust implementations.

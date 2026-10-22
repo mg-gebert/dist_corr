@@ -18,7 +18,6 @@ This project publishes the Python package from the `python/` directory.
 
 1. Bump versions consistently:
    - `python/pyproject.toml` `[project].version`
-   - `python/pyproject.toml` `[tool.poetry].version`
    - `python/Cargo.toml` `[package].version`
 2. Commit and push to your default branch.
 3. Create and push a tag:
