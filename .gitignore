@@ -12,7 +12,9 @@
 /python/dist_corr/*.dll
 /python/dist_corr/*.dylib
 /python/dist_corr/*.dSYM/
+/python/dist_corr/*.pdb
 /python/artifacts/
+
 
 # benches artifacts
 /benches/__pycache__/
